@@ -12,6 +12,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: recursive
     - name: Run clang-tidy
       uses: HorstBaerbel/action-clang-tidy@1.2
       with:
