@@ -16,6 +16,8 @@ jobs:
         submodules: recursive
     - name: Run clang-tidy
       uses: HorstBaerbel/action-clang-tidy@1.2
+      env:
+        INPUT_CMAKEOPTIONS: -DENABLE_TESTING=OFF
       with:
         scandir: '.'
         builddir: 'build'
