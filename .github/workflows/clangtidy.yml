@@ -1,22 +1,22 @@
 name: Clang-tidy
-on: push
-# on:
-#   push:
-#     branches: [ main ]
-#   pull_request:
-#     branches: [ main ]
 
-# jobs:
-#   checkout-and-check-formatting:
-#     runs-on: ubuntu-latest
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
-#     steps:
-#     - uses: actions/checkout@v2
-#     - name: Run clang-tidy
-#       uses: HorstBaerbel/action-clang-tidy@1.2
-#       with:
-#         scandir: '.'
-#         builddir: 'build'
-#         excludedirs: ''
-#         extensions: 'c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx'
-#         cmakeoptions: ''
+jobs:
+  checkout-and-check-formatting:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run clang-tidy
+      uses: HorstBaerbel/action-clang-tidy@1.2
+      with:
+        scandir: '.'
+        builddir: 'build'
+        excludedirs: ''
+        extensions: 'c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx'
+        cmakeoptions: ''

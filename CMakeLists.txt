@@ -1,34 +1,25 @@
 cmake_minimum_required(VERSION 3.16)
-project(redis_clone)
+project(RedisClone)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Include directory
+# Enable testing support
+include(CTest)
+enable_testing()
+
+# Include your include and src dirs
 include_directories(include)
 
-
-add_executable(redis_server
+add_executable(redis_clone
         src/main.cpp
-        src/client.cpp
         src/server.cpp
+        src/client.cpp
         src/kvstore.cpp
 )
 
 
-# Testing Setup
-enable_testing()
+add_subdirectory(third_party/Catch2)
 
-# Fetch Catch2 (header-only)
-include(FetchContent)
-FetchContent_Declare(
-        catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG v3.5.4 # Or the latest stable
-)
-FetchContent_MakeAvailable(catch2)
-
-# Test binary
 add_executable(tests
         test/test_basic.cpp
         src/kvstore.cpp
@@ -36,7 +27,6 @@ add_executable(tests
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
-# Register with ctest
-include(CTest)
+# Automatically discover tests using Catch2's CTest integration
 include(Catch)
 catch_discover_tests(tests)
