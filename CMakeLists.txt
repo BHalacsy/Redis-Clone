@@ -4,34 +4,39 @@ project(redis_clone)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Include directory
 include_directories(include)
 
-set(SRC_FILES
+
+add_executable(redis_server
         src/main.cpp
         src/client.cpp
         src/server.cpp
         src/kvstore.cpp
 )
 
-# Build main Redis server
-add_executable(redis_server ${SRC_FILES})
 
-
-
+# Testing Setup
 enable_testing()
 
-# Add Catch2 (header-only - place it in test/catch.hpp or use FetchContent)
+# Fetch Catch2 (header-only)
 include(FetchContent)
 FetchContent_Declare(
         catch2
         GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG v3.5.4 # Latest as of June 2025
+        GIT_TAG v3.5.4 # Or the latest stable
 )
 FetchContent_MakeAvailable(catch2)
 
+# Test binary
 add_executable(tests
         test/test_basic.cpp
         src/kvstore.cpp
 )
 
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+
+# Register with ctest
+include(CTest)
+include(Catch)
+catch_discover_tests(tests)
