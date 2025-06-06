@@ -3,7 +3,9 @@ project(RedisClone)
 
 set(CMAKE_CXX_STANDARD 20)
 
-# Include your include and src dirs
+# Declare this early so it's available before anything depends on it
+option(ENABLE_TESTING "Enable testing" ON)
+
 include_directories(include)
 
 add_executable(redis_clone
@@ -13,13 +15,10 @@ add_executable(redis_clone
         src/kvstore.cpp
 )
 
-
 add_executable(tests
         test/test_basic.cpp
         src/kvstore.cpp
 )
-
-option(ENABLE_TESTING "Enable testing" ON)
 
 if(ENABLE_TESTING)
     include(CTest)
