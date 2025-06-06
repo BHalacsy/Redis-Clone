@@ -14,6 +14,11 @@ add_executable(redis_clone
 )
 
 
+add_executable(tests
+        test/test_basic.cpp
+        src/kvstore.cpp
+)
+
 option(ENABLE_TESTING "Enable testing" ON)
 
 if(ENABLE_TESTING)
@@ -21,13 +26,7 @@ if(ENABLE_TESTING)
     enable_testing()
 
     add_subdirectory(third_party/Catch2)
-    include(Catch)
-
-    add_executable(tests
-            test/test_basic.cpp
-            src/kvstore.cpp
-    )
     target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
-
+    include(Catch)
     catch_discover_tests(tests)
 endif()
