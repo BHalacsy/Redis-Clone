@@ -3,9 +3,11 @@ project(RedisClone)
 
 set(CMAKE_CXX_STANDARD 20)
 
-# Declare this early so it's available before anything depends on it
-option(ENABLE_TESTING "Enable testing" ON)
+# Enable testing support
+include(CTest)
+enable_testing()
 
+# Include your include and src dirs
 include_directories(include)
 
 add_executable(redis_clone
@@ -15,17 +17,16 @@ add_executable(redis_clone
         src/kvstore.cpp
 )
 
+
+add_subdirectory(third_party/Catch2)
+
 add_executable(tests
         test/test_basic.cpp
         src/kvstore.cpp
 )
 
-if(ENABLE_TESTING)
-    include(CTest)
-    enable_testing()
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
-    add_subdirectory(third_party/Catch2)
-    target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
-    include(Catch)
-    catch_discover_tests(tests)
-endif()
+# Automatically discover tests using Catch2's CTest integration
+include(Catch)
+catch_discover_tests(tests)

@@ -1,0 +1,29 @@
+name: C++ Lint
+
+on:
+  pull_request:
+    paths-ignore:
+      - third_party/**
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - third_party/**
+
+jobs:
+  lint:
+    name: Run cpp-linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Run cpp-linter
+        uses: cpp-linter/cpp-linter-action@v2
+        with:
+          style: "llvm" # Or "google", "webkit", etc.
+          tidy-checks: "modernize-*,performance-*"
+          files-changed-only: false
+
+
+
