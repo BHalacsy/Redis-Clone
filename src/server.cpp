@@ -1,15 +1,20 @@
 #include <server.hpp>
+#include <iostream>
 
 
-Server::Server(int port) : servPort(port){
-    //basic contruction here
+Server::Server(const int port) : servPort(port)
+{
+    //TODO basic construction here
+    std::cout<<"Server created"<<std::endl;
 }
 
-Server::~Server(){
+Server::~Server()
+{
     //deconstruction here
+    //disconnect
 }
 
-void Server::start(){
-    //main loop for connection handling
+void Server::start()
+{
+    //TODO main loop for connection handling
 }
-

@@ -1,6 +1,18 @@
+#pragma once
+#include <unordered_map>
+#include <string>
+#include <variant>
 
+using values = std::variant<int, std::string>;
 
-#ifndef KVSTORE_HPP
-#define KVSTORE_HPP
+class KVStore {
+public:
+    KVStore();
+    ~KVStore();
 
-#endif // KVSTORE_HPP
+    values get(std::string k);
+    void set(std::string k, values v);
+
+private:
+    std::unordered_map<std::string,values> dict;
+};

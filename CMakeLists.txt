@@ -8,7 +8,7 @@ include(CTest)
 enable_testing()
 
 # Include your include and src dirs
-include_directories(include)
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 add_executable(redis_clone
         src/main.cpp
