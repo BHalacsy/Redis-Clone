@@ -2,12 +2,12 @@
 
 KVStore::KVStore()
 {
-    //Maybe add persistence to rebuild in mem db from file
+    //Maybe add persistence to rebuild in mem db, using fstream on a file.
 }
 
 KVStore::~KVStore()
 {
-
+    //Save everything to the disk?
 }
 
 values KVStore::get(std::string k)
