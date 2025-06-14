@@ -8,15 +8,21 @@ include(CTest)
 enable_testing()
 
 # Include your include and src dirs
-include_directories(${CMAKE_SOURCE_DIR}/include)
+
 
 add_executable(redis_clone
         src/main.cpp
         src/server.cpp
-        src/client.cpp
         src/kvstore.cpp
+        src/parser.cpp
 )
 
+add_executable(redis_client
+        src/client.cpp
+)
+
+target_include_directories(redis_clone PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(redis_client PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 add_subdirectory(third_party/Catch2)
 

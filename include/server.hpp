@@ -1,11 +1,9 @@
 #pragma once
 
 #include <server.hpp>
-#include <sys/socket.h>
-#include <iostream>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <string>
+#include <vector>
 
 class Server {
 public:
@@ -13,7 +11,8 @@ public:
 	~Server();
 
 	void start();
-	void handleComm(int clientSock, sockaddr_in& clientAddress);
+	void handleCommunication(int clientSock, sockaddr_in clientAddress);
+	void handleCommand(std::vector<std::string> command);
 
 private:
 	int sock;

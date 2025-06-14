@@ -1,10 +1,11 @@
 #include <server.hpp>
+#include <parser.hpp>
 #include <sys/socket.h>
 #include <iostream>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <thread>
 
-#include "../third_party/Catch2/src/catch2/internal/catch_result_type.hpp"
 
 
 Server::Server(const int port) : hostIP("127.0.0.1"), servPort(port)
@@ -25,7 +26,7 @@ Server::Server(const int port) : hostIP("127.0.0.1"), servPort(port)
         if (listen(this->sock, 5) != 0) {throw std::runtime_error("server listen failed");}
         std::cout << "Listening on: " << hostIP << " : " << servPort << std::endl;
     }
-    catch (const std::runtime_error& e)
+    catch (const std::exception& e)
     {
         std::cout << "Error caught: " << e.what() << std::endl;
     }
@@ -43,13 +44,47 @@ void Server::start()
     while (true)
     {
         //TODO Accept incoming multiple connection with threads
-        sockaddr_in newConAddress;
-        int newCon = accept(this->sock, reinterpret_cast<sockaddr*>(&newConAddress), reinterpret_cast<socklen_t*>(&newConAddress));
-        this->handleComm(newCon, newConAddress);
+        sockaddr_in connectionAddress;
+        socklen_t addLen = sizeof(connectionAddress);
+
+        std::cout << "Waiting for new connection..." << std::endl;
+        int connectionSock = accept(this->sock, reinterpret_cast<sockaddr*>(&connectionAddress), &addLen);
+        std::thread worker(&Server::handleCommunication, this, connectionSock, connectionAddress);
+        worker.detach();
     }
 }
 
-void Server::handleComm(int clientSocket, sockaddr_in& clientAddress)
+void Server::handleCommunication(int clientSocket, sockaddr_in clientAddress)
 {
-    std::cout << "New Connection!" << std::endl;
+    try
+    {
+        std::cout << "New connection" << std::endl;
+        //change to read in byte by byte and stop when end of line
+        char data[2048]; //subject to change?
+        std::string readBuffer;
+        long recved;
+
+        while (true)
+        {
+            recved = recv(clientSocket, data, sizeof(data), 0);
+            if (recved <= 0) break;
+
+
+
+            std::string retString(data, recved);
+            std::cout << "Received: " << retString << std::endl;
+        }
+
+    } catch (const std::exception& e) {
+        std::cerr << "Communication error: " << e.what() << std::endl;
+    }
+
+
+    return;
+}
+
+
+void Server::handleCommand(std::vector<std::string> command)
+{
+    return;
 }
