@@ -1,4 +1,5 @@
-#include "kvstore.hpp"
+#include <kvstore.hpp>
+#include <RESPtype.hpp>
 
 KVStore::KVStore()
 {
@@ -10,13 +11,13 @@ KVStore::~KVStore()
     //Save everything to the disk?
 }
 
-values KVStore::get(std::string k)
+RESPValue KVStore::get(std::string k)
 {
     //TODO implement get
-    return 0;
+    return {0};
 }
 
-void KVStore::set(std::string k, values v)
+void KVStore::set(std::string k, RESPValue v)
 {
     //TODO implement set
 }

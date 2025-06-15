@@ -5,6 +5,9 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <thread>
+#include <kvstore.hpp>
+#include <util.hpp>
+#include <parser.hpp>
 
 
 
@@ -40,10 +43,9 @@ Server::~Server()
 
 void Server::start()
 {
-    //TODO main loop for connection handling
+    //TODO main loop for connection IMPLEMENT HANDSHAKE
     while (true)
     {
-        //TODO Accept incoming multiple connection with threads
         sockaddr_in connectionAddress;
         socklen_t addLen = sizeof(connectionAddress);
 
@@ -60,19 +62,15 @@ void Server::handleCommunication(int clientSocket, sockaddr_in clientAddress)
     {
         std::cout << "New connection" << std::endl;
         //change to read in byte by byte and stop when end of line
-        char data[2048]; //subject to change?
-        std::string readBuffer;
-        long recved;
+        char data;
+        RESPValue command;
 
         while (true)
         {
-            recved = recv(clientSocket, data, sizeof(data), 0);
-            if (recved <= 0) break;
+            data = readByte(clientSocket);
+            command = parseRESP(data, clientSocket);
 
 
-
-            std::string retString(data, recved);
-            std::cout << "Received: " << retString << std::endl;
         }
 
     } catch (const std::exception& e) {

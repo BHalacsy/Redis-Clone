@@ -1,18 +1,16 @@
 #pragma once
 #include <unordered_map>
 #include <string>
-#include <variant>
-
-using values = std::variant<int, std::string>;
+#include <RESPtype.hpp>
 
 class KVStore {
 public:
     KVStore();
     ~KVStore();
 
-    values get(std::string k);
-    void set(std::string k, values v);
+    RESPValue get(std::string k);
+    void set(std::string k, RESPValue v);
 
 private:
-    std::unordered_map<std::string,values> dict;
+    std::unordered_map<std::string,RESPValue> dict;
 };
