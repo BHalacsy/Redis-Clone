@@ -2,8 +2,9 @@
 #include <sys/socket.h>
 #include <string>
 #include <stdexcept>
+#include <sstream>
 
-inline char readByte(int sock)
+inline char readByte(const int sock)
 {
     char byte;
     if (recv(sock, &byte, 1, 0) <= 0)
@@ -13,12 +14,12 @@ inline char readByte(int sock)
     return byte;
 }
 
-inline std::string readLine(int sock)
+inline std::string readLine(const int sock)
 {
     std::string retString;
     while (true)
     {
-        char byte = readByte(sock);
+        const char byte = readByte(sock);
         if (byte == '\r')
         {
             if (readByte(sock) != '\n')
@@ -29,4 +30,17 @@ inline std::string readLine(int sock)
         }
         retString.push_back(byte);
     }
+}
+
+inline std::vector<std::string> splitSpaces(const std::string& line)
+{
+    std::istringstream ss(line);
+    std::vector<std::string> retVec;
+    std::string wordToken;
+
+    while (ss >> wordToken)
+    {
+        retVec.push_back(wordToken);
+    }
+    return retVec;
 }

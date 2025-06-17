@@ -11,13 +11,13 @@ KVStore::~KVStore()
     //Save everything to the disk?
 }
 
-RESPValue KVStore::get(std::string k)
+std::string KVStore::get(std::string k)
 {
     //TODO implement get
     return {0};
 }
 
-void KVStore::set(std::string k, RESPValue v)
+void KVStore::set(std::string k, std::string v)
 {
     //TODO implement set
 }

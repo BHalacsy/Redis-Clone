@@ -5,14 +5,14 @@
 #include <memory>
 
 
-struct RESPValue;
-
-using RESPValueWrapper = std::variant<
-    std::string,
-    int64_t,
-    std::vector<std::unique_ptr<RESPValue>>
->;
-
-struct RESPValue {
-    RESPValueWrapper value;
-};
+// struct RESPValue;
+//
+// using RESPValueWrapper = std::variant<
+//     std::string,
+//     int64_t,
+//     std::vector<std::string>
+// >;
+//
+// struct RESPValue {
+//     RESPValueWrapper value;
+// };

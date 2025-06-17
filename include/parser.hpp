@@ -6,11 +6,11 @@
 #include <RESPtype.hpp>
 
 
-RESPValue parseRESP(char datatype, int sock);
-RESPValue parseSimpleString(int sock);
-RESPValue parseError(int sock);
-RESPValue parseInteger(int sock);
-RESPValue parseBulkString(int sock);
-RESPValue parseArray(int sock);
+std::vector<std::string> parseRESP(char datatype, int sock);
+std::vector<std::string> parseSimpleString(int sock);
+std::vector<std::string> parseError(int sock);
+std::vector<std::string> parseInteger(int sock);
+std::vector<std::string> parseBulkString(int sock);
+std::vector<std::string> parseArray(int sock);
 
-std::string parseCliToRESP(); // not sure yet
+std::string parseCommandToRESP(const std::string& command); // not sure yet

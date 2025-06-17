@@ -63,14 +63,13 @@ void Server::handleCommunication(int clientSocket, sockaddr_in clientAddress)
         std::cout << "New connection" << std::endl;
         //change to read in byte by byte and stop when end of line
         char data;
-        RESPValue command;
+        std::vector<std::string> command;
 
         while (true)
         {
             data = readByte(clientSocket);
             command = parseRESP(data, clientSocket);
-
-
+            handleCommand(command);
         }
 
     } catch (const std::exception& e) {
@@ -84,5 +83,15 @@ void Server::handleCommunication(int clientSocket, sockaddr_in clientAddress)
 
 void Server::handleCommand(std::vector<std::string> command)
 {
-    return;
+    for (const auto& i : command)
+    {
+        std::cout << "command element: " << i << std::endl;
+    }
+    std::string cmd = command[0];
+    switch (cmd)
+    {
+        case "SET":
+        break;
+    default: throw std::runtime_error("Command not non or handled");
+    }
 }

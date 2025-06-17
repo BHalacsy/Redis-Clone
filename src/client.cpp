@@ -5,6 +5,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include <parser.hpp>
+
 int main()
 {
     std::string hostIP = "127.0.0.1";
@@ -21,8 +23,8 @@ int main()
     {
         std::cin >> input;
         if (input == "!q") { break; }
-        send(conSock, input.c_str(), input.size(), 0);
-        //parse(input) for RESP
+        std::string RESP = parseCommandToRESP(input);
+        send(conSock, RESP.c_str(), RESP.size(), 0);
     }
     return 0;
 }

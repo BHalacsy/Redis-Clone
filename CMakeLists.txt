@@ -19,6 +19,7 @@ add_executable(redis_server
 
 add_executable(redis_client
         src/client.cpp
+        src/parser.cpp
 )
 
 target_include_directories(redis_server PRIVATE ${CMAKE_SOURCE_DIR}/include)
@@ -31,6 +32,7 @@ add_executable(tests
         src/kvstore.cpp
 )
 
+target_include_directories(tests PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
 # Automatically discover tests using Catch2's CTest integration

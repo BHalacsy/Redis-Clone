@@ -8,9 +8,9 @@ public:
     KVStore();
     ~KVStore();
 
-    RESPValue get(std::string k);
-    void set(std::string k, RESPValue v);
+    std::string get(std::string k);
+    void set(std::string k, std::string v);
 
 private:
-    std::unordered_map<std::string,RESPValue> dict;
+    std::unordered_map<std::string,std::string> dict;
 };
