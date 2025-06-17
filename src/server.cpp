@@ -87,11 +87,11 @@ void Server::handleCommand(std::vector<std::string> command)
     {
         std::cout << "command element: " << i << std::endl;
     }
-    std::string cmd = command[0];
-    switch (cmd)
-    {
-        case "SET":
-        break;
-    default: throw std::runtime_error("Command not non or handled");
-    }
+    // std::string cmd = command[0];
+    // switch (cmd)
+    // {
+    //     case "SET":
+    //     break;
+    // default: throw std::runtime_error("Command not non or handled");
+    // }
 }
