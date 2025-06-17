@@ -8,9 +8,13 @@ public:
     KVStore();
     ~KVStore();
 
-    std::string get(std::string k);
-    void set(std::string k, std::string v);
+    std::string get(const std::string& k);
+    void set(const std::string& k, const std::string& v);
+    void del(const std::string& k);
+    bool exists(const std::string& k);
+    //expire, ttl
 
 private:
     std::unordered_map<std::string,std::string> dict;
+    std::mutex lock;
 };

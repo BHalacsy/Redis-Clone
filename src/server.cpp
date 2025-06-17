@@ -81,17 +81,54 @@ void Server::handleCommunication(int clientSocket, sockaddr_in clientAddress)
 }
 
 
-void Server::handleCommand(std::vector<std::string> command)
+void Server::handleCommand(std::vector<std::string> command) //maybe change to handle resp
 {
-    for (const auto& i : command)
+    if (command.empty())
     {
-        std::cout << "command element: " << i << std::endl;
+        std::cerr << "Command empty" << std::endl;
+        return;
     }
-    // std::string cmd = command[0];
-    // switch (cmd)
-    // {
-    //     case "SET":
-    //     break;
-    // default: throw std::runtime_error("Command not non or handled");
-    // }
+    std::string cmd = command[0];
+    switch (cmd)
+    {
+        case "SET":
+            if (command.size() != 3)
+            {
+                std::cerr << "Command arguments malformed" << std::endl;
+                return;
+            }
+            kvstore.set(command[1], command[2]);
+            break;
+
+        case "GET":
+            if (command.size() != 2)
+            {
+                std::cerr << "Command arguments malformed" << std::endl;
+                return;
+            }
+            kvstore.get(command[1]);
+            break;
+
+        case "DEL":
+            if (command.size() != 2)
+            {
+                std::cerr << "Command arguments malformed" << std::endl;
+                return;
+            }
+            kvstore.del(command[1]);
+            break;
+
+        case "EXISTS":
+            if (command.size() != 2)
+            {
+                std::cerr << "Command arguments malformed" << std::endl;
+                return;
+            }
+            kvstore.exists(command[1]);
+            break;
+
+        default: throw std::runtime_error("Command not non or handled");
+    }
+
+    return; //works
 }

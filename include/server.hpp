@@ -4,6 +4,7 @@
 #include <netinet/in.h>
 #include <string>
 #include <vector>
+#include <kvstore.hpp>
 
 class Server {
 public:
@@ -18,4 +19,5 @@ private:
 	int sock;
 	std::string hostIP;
 	int servPort;
+	KVStore kvstore;
 };
