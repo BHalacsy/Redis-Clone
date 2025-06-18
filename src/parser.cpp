@@ -62,7 +62,7 @@ std::vector<std::string> parseArray(const int sock)
 
 std::string parseCommandToRESP(const std::string& command)
 {
-    std::vector<std::string> parts = splitSpaces(command);
+    const std::vector<std::string> parts = splitSpaces(command);
     std::string retStr = "*" + std::to_string(parts.size()) + "\r\n";
     for (const auto& i : parts)
     {

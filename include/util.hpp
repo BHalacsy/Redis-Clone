@@ -24,7 +24,7 @@ inline std::string readLine(const int sock)
         {
             if (readByte(sock) != '\n')
             {
-                throw std::runtime_error("Connection closed (readLine)");
+                throw std::runtime_error("Malformed readLine");
             }
             return retString;
         }

@@ -7,7 +7,8 @@
 #include <thread>
 #include <kvstore.hpp>
 #include <util.hpp>
-#include <parser.hpp>
+#include <RESPtype.hpp>
+#include <commands.hpp>
 
 
 
@@ -39,11 +40,13 @@ Server::~Server()
 {
     //deconstruction here
     //disconnect
+    std::cout << "Server shutting down..." << std::endl;
+    close(this->sock);
 }
 
 void Server::start()
 {
-    //TODO main loop for connection IMPLEMENT HANDSHAKE
+    //TODO for connection IMPLEMENT HANDSHAKE and concurrency
     while (true)
     {
         sockaddr_in connectionAddress;
@@ -71,13 +74,12 @@ void Server::handleCommunication(int clientSocket, sockaddr_in clientAddress)
             command = parseRESP(data, clientSocket);
             handleCommand(command);
         }
-
+        close(clientSocket);
+        return;
     } catch (const std::exception& e) {
         std::cerr << "Communication error: " << e.what() << std::endl;
+        close(clientSocket);
     }
-
-
-    return;
 }
 
 
@@ -89,9 +91,9 @@ void Server::handleCommand(std::vector<std::string> command) //maybe change to h
         return;
     }
     std::string cmd = command[0];
-    switch (cmd)
+    switch (strToCmd(cmd))
     {
-        case "SET":
+        case Commands::SET:
             if (command.size() != 3)
             {
                 std::cerr << "Command arguments malformed" << std::endl;
@@ -100,7 +102,7 @@ void Server::handleCommand(std::vector<std::string> command) //maybe change to h
             kvstore.set(command[1], command[2]);
             break;
 
-        case "GET":
+        case Commands::GET:
             if (command.size() != 2)
             {
                 std::cerr << "Command arguments malformed" << std::endl;
@@ -109,7 +111,7 @@ void Server::handleCommand(std::vector<std::string> command) //maybe change to h
             kvstore.get(command[1]);
             break;
 
-        case "DEL":
+        case Commands::DEL:
             if (command.size() != 2)
             {
                 std::cerr << "Command arguments malformed" << std::endl;
@@ -118,7 +120,7 @@ void Server::handleCommand(std::vector<std::string> command) //maybe change to h
             kvstore.del(command[1]);
             break;
 
-        case "EXISTS":
+        case Commands::EXISTS:
             if (command.size() != 2)
             {
                 std::cerr << "Command arguments malformed" << std::endl;
@@ -127,7 +129,7 @@ void Server::handleCommand(std::vector<std::string> command) //maybe change to h
             kvstore.exists(command[1]);
             break;
 
-        default: throw std::runtime_error("Command not non or handled");
+        default: throw std::runtime_error("Command not non or handled"); //send error
     }
 
     return; //works
