@@ -2,16 +2,17 @@
 #include <unordered_map>
 #include <string>
 #include <RESPtype.hpp>
+#include <optional>
 
 class KVStore {
 public:
     KVStore();
     ~KVStore();
 
-    std::string get(const std::string& k);
-    void set(const std::string& k, const std::string& v);
-    void del(const std::string& k);
-    bool exists(const std::string& k);
+    std::optional<std::string> get(const std::string& k);
+    bool set(const std::string& k, const std::string& v);
+    int del(const std::vector<std::string>& args);
+    int exists(const std::vector<std::string>& args);
     //expire, ttl
 
 private:

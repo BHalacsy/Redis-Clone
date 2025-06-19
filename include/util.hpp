@@ -3,6 +3,8 @@
 #include <string>
 #include <stdexcept>
 #include <sstream>
+#include <iostream>
+
 
 inline char readByte(const int sock)
 {
@@ -34,10 +36,9 @@ inline std::string readLine(const int sock)
 
 inline std::vector<std::string> splitSpaces(const std::string& line)
 {
-    std::istringstream ss(line);
     std::vector<std::string> retVec;
+    std::stringstream ss(line);
     std::string wordToken;
-
     while (ss >> wordToken)
     {
         retVec.push_back(wordToken);

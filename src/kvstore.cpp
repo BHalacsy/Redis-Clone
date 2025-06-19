@@ -1,5 +1,6 @@
 #include <kvstore.hpp>
 #include <RESPtype.hpp>
+#include <iostream>
 
 KVStore::KVStore()
 {
@@ -12,33 +13,66 @@ KVStore::~KVStore()
     //Save everything to the disk?
 }
 
-std::string KVStore::get(const std::string& k)
+std::optional<std::string> KVStore::get(const std::string& k)
 {
     auto found = dict.find(k);
     if (found != dict.end()) return found->second;
-    return {0};
+    return std::nullopt;
 }
 
-void KVStore::set(const std::string& k, const std::string& v)
+bool KVStore::set(const std::string& k, const std::string& v)
 {
-    if (this->exists(k))
+    try
     {
-        dict[k] = v;
+        if (dict.contains(k)) dict[k] = v;
+        else dict.insert({k,v});
+        return true;
+    } catch (std::exception& e) {
+        std::cerr << "Fail in set: " << e.what() << std::endl;
+        return false;
     }
-    else
+}
+
+int KVStore::del(const std::vector<std::string>& args)
+{
+    try
     {
-        dict.insert({k,v});
+        int deleted = 0;
+        for (const auto& k : args)
+        {
+
+            if (dict.contains(k))
+            {
+                dict.erase(k);
+                deleted++;
+            }
+        }
+        return deleted;
+
+    } catch (std::exception& e) {
+        std::cerr << "Fail in del: " << e.what() << std::endl;
+        return 0;
     }
 }
 
-void KVStore::del(const std::string& k)
+int  KVStore::exists(const std::vector<std::string>& args)
 {
-    dict.erase(k);
-}
+    try
+    {
+        int exist = 0;
+        for (const auto& k : args)
+        {
+            if (dict.contains(k))
+            {
+                exist++;
+            }
+        }
+        return exist;
 
-bool KVStore::exists(const std::string& k)
-{
-    return dict.find(k) != dict.end();
+    } catch (std::exception& e) {
+        std::cerr << "Fail in del: " << e.what() << std::endl;
+        return 0;
+    }
 }
 
 

@@ -3,7 +3,8 @@
 #include <string>
 #include <iostream>
 #include <util.hpp>
-
+#include <format>
+//TODO overall change to not read line by line to reduce sys calls
 std::vector<std::string> parseRESP(const char datatype, const int sock)
 {
     switch (datatype)
@@ -13,8 +14,7 @@ std::vector<std::string> parseRESP(const char datatype, const int sock)
         case ':': return parseInteger(sock);
         case '$': return parseBulkString(sock);
         case '*': return parseArray(sock);
-        default:
-            throw std::runtime_error("RESP type not yet implemented or handled");
+        default: throw std::runtime_error("RESP type not yet implemented or handled");
     }
 }
 
@@ -51,11 +51,11 @@ std::vector<std::string> parseArray(const int sock)
     std::string lenStr = readLine(sock);
     int arrayLen = std::stoi(lenStr);
     std::vector<std::string> ret;
-    for (ssize_t i = 0; i < arrayLen - 1; i++)
+    for (ssize_t i = 0; i < arrayLen; i++)
     {
         char type = readByte(sock);
         std::vector<std::string> element = parseRESP(type, sock);
-        ret.insert(ret.end(), element.begin(), element.end());
+        if (!element.empty()) ret.push_back(element[0]);
     }
     return ret;
 }
@@ -63,10 +63,10 @@ std::vector<std::string> parseArray(const int sock)
 std::string parseCommandToRESP(const std::string& command)
 {
     const std::vector<std::string> parts = splitSpaces(command);
-    std::string retStr = "*" + std::to_string(parts.size()) + "\r\n";
+    std::string retStr = std::format("*{}\r\n", parts.size());;
     for (const auto& i : parts)
     {
-        retStr += "$" + std::to_string(i.size()) + "\r\n" + i + "\r\n";
+        retStr += std::format("${}\r\n{}\r\n", i.size(), i);
     }
     return retStr;
 }
