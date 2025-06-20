@@ -31,6 +31,9 @@ add_subdirectory(third_party/Catch2)
 add_executable(tests
         test/test_basic.cpp
         src/kvstore.cpp
+        src/parser.cpp
+        src/server.cpp
+        src/commands.cpp
 )
 
 target_include_directories(tests PRIVATE ${CMAKE_SOURCE_DIR}/include)

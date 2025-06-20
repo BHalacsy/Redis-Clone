@@ -1,5 +1,6 @@
 #pragma once
 #include <unordered_map>
+#include <chrono>
 #include <string>
 #include <RESPtype.hpp>
 #include <optional>
@@ -9,12 +10,17 @@ public:
     KVStore();
     ~KVStore();
 
+    void removeExp(const std::string& k);
+
     std::optional<std::string> get(const std::string& k);
     bool set(const std::string& k, const std::string& v);
     int del(const std::vector<std::string>& args);
-    int exists(const std::vector<std::string>& args) const;
+    int exists(const std::vector<std::string>& args);
+    std::optional<int> incr(const std::string& k);
+    std::optional<int> dcr(const std::string& k);
 
 private:
     std::unordered_map<std::string,std::string> dict;
-    std::mutex lock;
+    std::unordered_map<std::string,std::chrono::steady_clock::time_point> expTable;
+    std::mutex mtx;
 };

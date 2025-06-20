@@ -98,6 +98,7 @@ std::string Server::handleCommand(const std::vector<std::string>& command) //may
 
     switch (strToCmd(command[0]))
     {
+        //TODO make commands be associated with Comands class emu thing
         case Commands::SET:
             response = handleSet(kvstore, arguments);
             break;

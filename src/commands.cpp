@@ -5,6 +5,7 @@
 
 #include <commands.hpp>
 #include <kvstore.hpp>
+#include <util.hpp>
 
 Commands strToCmd(const std::string& cmd)
 {
@@ -21,7 +22,7 @@ std::string handleSet(KVStore& kvstore, const std::vector<std::string>& args)
     if (args.size() != 2)
     {
         std::cerr << "Command arguments malformed" << std::endl;
-        response = std::format("-ERR command expected {} arguments, got {} instead\r\n", 2, args.size());
+        response = argumentError("2", args.size());
     }
     else
     {
@@ -36,7 +37,7 @@ std::string handleGet(KVStore& kvstore, const std::vector<std::string>& args)
     if (args.size() != 1)
     {
         std::cerr << "Command arguments malformed" << std::endl;
-        response = std::format("-ERR command expected {} arguments, got {} instead\r\n", 1, args.size());
+        response = argumentError("1", args.size());
     }
     else
     {
@@ -52,7 +53,7 @@ std::string handleDel(KVStore& kvstore, const std::vector<std::string>& args)
     if (args.size() < 1)
     {
         std::cerr << "Command arguments malformed" << std::endl;
-        response = std::format("-ERR command expected 1 or more arguments, got {} instead\r\n", args.size());
+        response = argumentError("1 or more", args.size());
     }
     else
     {
@@ -68,12 +69,132 @@ std::string handleExists(KVStore& kvstore, const std::vector<std::string>& args)
     if (args.size() < 1)
     {
         std::cerr << "Command arguments malformed" << std::endl;
-        response = std::format("-ERR command expected 1 or more arguments, got {} instead\r\n", args.size());
+        response = argumentError("1 or more", args.size());
     }
     else
     {
         int found = kvstore.exists(args);
         response = std::format(":{}\r\n", found);
+    }
+    return response;
+}
+
+std::string handleIncr(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    std::string response;
+    if (args.size() != 1)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        response = argumentError("1", args.size());
+    }
+    else
+    {
+
+    }
+    return response;
+}
+
+std::string handleDcr(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    std::string response;
+    if (args.size() != 1)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        response = argumentError("1", args.size());
+    }
+    else
+    {
+
+    }
+    return response;
+}
+
+std::string handleMget(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    std::string response;
+    if (args.size() < 1)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        response = argumentError("1 or more", args.size());
+    }
+    else
+    {
+
+    }
+    return response;
+}
+
+std::string handlePing(const std::vector<std::string>& args)
+{
+    std::string response;
+    if (args.size() > 1)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        response = argumentError("1 or none", args.size());
+    }
+    else
+    {
+        response = args.size() == 1 ? std::format("${}\r\n{}\r\n", args[0].length(), args[0]) : "+PONG\r\n";
+    }
+    return response;
+}
+
+std::string handleEcho(const std::vector<std::string>& args)
+{
+    std::string response;
+    if (args.size() != 1)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        response = argumentError("1", args.size());
+    }
+    else
+    {
+        response = std::format("${}\r\n{}\r\n", args[0].length(), args[0]);
+    }
+    return response;
+}
+
+std::string handleExpire(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    std::string response;
+    if (args.size() != 2)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        response = argumentError("2", args.size());
+    }
+    else
+    {
+
+    }
+    return response;
+}
+
+std::string handleTTL(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    std::string response;
+    if (args.size() != 1)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        response = argumentError("1", args.size());
+    }
+    else
+    {
+
+    }
+    return response;
+}
+
+std::string handleFlushall(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    std::string response;
+    if (args.size() > 0)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        response = argumentError("0", args.size());
+    }
+    else
+    {
+
     }
     return response;
 }

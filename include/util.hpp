@@ -45,3 +45,9 @@ inline std::vector<std::string> splitSpaces(const std::string& line)
     }
     return retVec;
 }
+
+//TODO clean this disgusting thing
+inline std::string argumentError(std::string expected, int got)
+{
+    return std::format("-ERR command expected {} arguments, got {} instead\r\n", expected, got);
+}
