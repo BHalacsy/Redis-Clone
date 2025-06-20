@@ -12,8 +12,7 @@ public:
     std::optional<std::string> get(const std::string& k);
     bool set(const std::string& k, const std::string& v);
     int del(const std::vector<std::string>& args);
-    int exists(const std::vector<std::string>& args);
-    //expire, ttl
+    int exists(const std::vector<std::string>& args) const;
 
 private:
     std::unordered_map<std::string,std::string> dict;

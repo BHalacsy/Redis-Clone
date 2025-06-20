@@ -1,9 +1,10 @@
-#include <parser.hpp>
 #include <vector>
 #include <string>
-#include <iostream>
-#include <util.hpp>
 #include <format>
+
+#include <parser.hpp>
+#include <util.hpp>
+
 //TODO overall change to not read line by line to reduce sys calls
 std::vector<std::string> parseRESP(const char datatype, const int sock)
 {
@@ -39,8 +40,7 @@ std::vector<std::string> parseBulkString(const int sock)
     int len = std::stoi(lenStr);
     if (len == -1) return {};
 
-    std::string retStr;
-    retStr = readLine(sock);
+    std::string retStr = readLine(sock);
     if (retStr.size() != len) throw std::runtime_error("Malformed bulk string");
 
     return {retStr};

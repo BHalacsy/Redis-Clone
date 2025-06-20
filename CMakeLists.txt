@@ -15,6 +15,7 @@ add_executable(redis_server
         src/server.cpp
         src/kvstore.cpp
         src/parser.cpp
+        src/commands.cpp
 )
 
 add_executable(redis_client

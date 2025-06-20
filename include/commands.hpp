@@ -1,8 +1,10 @@
 #pragma once
 
 #include <string>
+#include <kvstore.hpp>
 
 //commands for switching:
+//TODO implement INCR, DCR, MGET, PING, ECHO, EXPIRE TTL, FLUSHALL...
 enum class Commands
 {
     SET,
@@ -12,13 +14,10 @@ enum class Commands
     UNKNOWN
 };
 
-Commands strToCmd(const std::string& cmd)
-{
-    if (cmd == "SET") return Commands::SET;
-    if (cmd == "GET") return Commands::GET;
-    if (cmd == "DEL") return Commands::DEL;
-    if (cmd == "EXISTS") return Commands::EXISTS;
-    return Commands::UNKNOWN;
-}
+Commands strToCmd(const std::string& cmd);
 
+std::string handleSet(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleGet(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleDel(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleExists(KVStore& kvstore, const std::vector<std::string>& args);
 

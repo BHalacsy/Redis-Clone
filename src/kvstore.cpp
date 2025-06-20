@@ -55,7 +55,7 @@ int KVStore::del(const std::vector<std::string>& args)
     }
 }
 
-int  KVStore::exists(const std::vector<std::string>& args)
+int KVStore::exists(const std::vector<std::string>& args) const
 {
     try
     {
