@@ -69,7 +69,7 @@ void Server::handleCommunication(int clientSock, sockaddr_in clientAddress)
         try
         {
             //read and parse
-            char data = readByte(clientSock);
+            const char data = readByte(clientSock);
             std::vector<std::string> command = parseRESP(data, clientSock);
 
             //handle and return
@@ -99,26 +99,20 @@ std::string Server::handleCommand(const std::vector<std::string>& command) //may
     switch (strToCmd(command[0]))
     {
         //TODO make commands be associated with Comands class emu thing
-        case Commands::SET:
-            response = handleSet(kvstore, arguments);
-            break;
-
-        case Commands::GET:
-            response = handleGet(kvstore, arguments);
-            break;
-
-        case Commands::DEL:
-            response = handleDel(kvstore, arguments);
-            break;
-
-        case Commands::EXISTS:
-            response = handleExists(kvstore, arguments);
-            break;
-
+        case Commands::PING: return handlePing(arguments);
+        case Commands::ECHO: return handleEcho(arguments);
+        case Commands::SET: return handleSet(kvstore, arguments);
+        case Commands::GET: return handleGet(kvstore, arguments);
+        case Commands::DEL: return handleDel(kvstore, arguments);
+        case Commands::EXISTS: return handleExists(kvstore, arguments);
+        case Commands::INCR: return handleIncr(kvstore, arguments);
+        case Commands::DCR: return handleDcr(kvstore, arguments);
+        case Commands::EXPIRE: return handleExpire(kvstore, arguments);
+        case Commands::TTL: return handleTTL(kvstore, arguments);
+        case Commands::FLUSHALL: return handleFlushall(kvstore, arguments);
+        case Commands::MGET: return handleMget(kvstore, arguments);
         default:
             std::cerr << "Command not handled" << std::endl;
-            response = std::format("-ERR unknown command '{}'", command[0]);//send error
+            return std::format("-ERR unknown command '{}'", command[0]);//send error
     }
-
-    return response;
 }

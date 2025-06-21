@@ -14,3 +14,4 @@ std::vector<std::string> parseBulkString(int sock);
 std::vector<std::string> parseArray(int sock);
 
 std::string parseCommandToRESP(const std::string& command); // not sure yet
+int intParser(const std::string& line);

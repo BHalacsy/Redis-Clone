@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 
-
+//for when implementing all various datatypes, maybe have vector<RESPvalue>
 struct RESPValue;
 
 using RESPValueWrapper = std::variant<

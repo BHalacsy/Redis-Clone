@@ -18,6 +18,9 @@ public:
     int exists(const std::vector<std::string>& args);
     std::optional<int> incr(const std::string& k);
     std::optional<int> dcr(const std::string& k);
+    bool expire(const std::string& k, int s);
+    int ttl(const std::string& k);
+    void flushall();
 
 private:
     std::unordered_map<std::string,std::string> dict;

@@ -5,7 +5,7 @@
 #include <parser.hpp>
 #include <util.hpp>
 
-//TODO overall change to not read line by line to reduce sys calls
+//TODO overall change to not read line by line to reduce sys calls also maybe not each ret vector<string> if possible
 std::vector<std::string> parseRESP(const char datatype, const int sock)
 {
     switch (datatype)
@@ -69,4 +69,9 @@ std::string parseCommandToRESP(const std::string& command)
         retStr += std::format("${}\r\n{}\r\n", i.size(), i);
     }
     return retStr;
+}
+
+int intParser(const std::string& respInt) {
+    size_t end = respInt.find("\r\n");
+    return std::stoi(respInt.substr(1, end - 1));
 }
