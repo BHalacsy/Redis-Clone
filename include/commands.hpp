@@ -20,9 +20,9 @@ std::string handleDel(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleExists(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleIncr(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleDcr(KVStore& kvstore, const std::vector<std::string>& args);
-std::string handleExpire(KVStore& kvstore, const std::vector<std::string>& args);//TODO
-std::string handleTTL(KVStore& kvstore, const std::vector<std::string>& args);//TODO
-std::string handleFlushall(KVStore& kvstore, const std::vector<std::string>& args);//TODO
+std::string handleExpire(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleTTL(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleFlushall(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleMget(KVStore& kvstore, const std::vector<std::string>& args);//TODO
 
 

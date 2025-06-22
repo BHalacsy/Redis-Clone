@@ -21,6 +21,7 @@ public:
     bool expire(const std::string& k, int s);
     int ttl(const std::string& k);
     void flushall();
+    std::vector<std::optional<std::string>> mget(const std::vector<std::string>& args);
 
 private:
     std::unordered_map<std::string,std::string> dict;
