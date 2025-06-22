@@ -3,6 +3,7 @@
 #include <parser.hpp>
 #include <kvstore.hpp>
 #include <commands.hpp>
+#include <thread>
 #include <util.hpp>
 
 TEST_CASE("Set method", "[set][kvstore method][unit]")
@@ -31,7 +32,6 @@ TEST_CASE("Set method", "[set][kvstore method][unit]")
         kv.set("empty key", "");
         REQUIRE(kv.get("empty key") == "");
     }
-
 }
 TEST_CASE("Get method", "[get][kvstore method][unit]")
 {
@@ -136,6 +136,79 @@ TEST_CASE("Dcr method", "[dcr][kvstore method][unit]")
     SECTION("Dcr non-number")
     {
         REQUIRE(kv.dcr({"b"}) == std::nullopt);
+    }
+}
+TEST_CASE("Expire method", "[expire][kvstore method][unit]")
+{
+    KVStore kv;
+    kv.set("a", "1");
+    kv.set("b", "2");
+
+    SECTION("Set expiry on existing key")
+    {
+        REQUIRE(kv.expire("a", 5) == 1);
+        REQUIRE(kv.ttl("a") <= 5);
+        REQUIRE(kv.ttl("a") > 0);
+    }
+
+    SECTION("Set expiry on non-existing key")
+    {
+        REQUIRE(kv.expire("c", 5) == 0);
+    }
+
+    SECTION("Key expires after time")
+    {
+        kv.expire("b", 1);
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        REQUIRE(kv.get("b") == std::nullopt);
+        REQUIRE(kv.ttl("b") == -2);
+    }
+
+}
+TEST_CASE("Ttl method", "[ttl][kvstore method][unit]")
+{
+    KVStore kv;
+    kv.set("a", "1");
+
+    SECTION("TTL for key without expiry")
+    {
+        REQUIRE(kv.ttl("a") == -1);
+    }
+
+    SECTION("TTL for non-existing key")
+    {
+        REQUIRE(kv.ttl("b") == -2);
+    }
+
+    SECTION("TTL decreases over time")
+    {
+        kv.expire("a", 5);
+        int ttl1 = kv.ttl("a");
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+        int ttl2 = kv.ttl("a");
+        REQUIRE(ttl2 < ttl1);
+        REQUIRE(ttl2 > 0);
+    }
+}
+TEST_CASE("Mget method", "[mget][kvstore method][unit]")
+{
+    KVStore kv;
+    kv.set("a", "1");
+    kv.set("b", "2");
+
+    SECTION("Mget expected")
+    {
+        auto res = kv.mget({"a", "b", "c"});
+        REQUIRE(res.size() == 3);
+        REQUIRE(res[0] == "1");
+        REQUIRE(res[1] == "2");
+        REQUIRE(res[1] == std::nullopt);
+    }
+
+    SECTION("Mget empty key list")
+    {
+        auto res = kv.mget({});
+        REQUIRE(res.empty());
     }
 }
 
@@ -313,9 +386,13 @@ TEST_CASE("TTL command", "[ttl][command handler][unit]")
 TEST_CASE("Flushall command", "[flushall][command handler][unit]")
 {
     KVStore kv;
+    kv.set("a", "1");
+    kv.set("b", "2");
+    kv.set("c", "3");
     SECTION("Flushall expected")
     {
-        REQUIRE(handleFlushall(kv, {0}) == "\r\n\r\n");
+        REQUIRE(handleFlushall(kv, {}) == "+OK\r\n");
+        REQUIRE(handleGet(kv, {"a"}) == "$-1\r\n");
     }
 
     SECTION("Flushall bad args")
@@ -335,6 +412,6 @@ TEST_CASE("Mget command", "[mget][command handler][unit]")
 
     SECTION("Mget bad args")
     {
-        REQUIRE(handleMget(kv, {0}) == argumentError("1 or more", 0));
+        REQUIRE(handleMget(kv, {}) == argumentError("1 or more", 0));
     }
 }

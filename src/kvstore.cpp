@@ -6,7 +6,7 @@
 
 KVStore::KVStore()
 {
-    //Maybe add persistence to rebuild in mem db, using fstream on a file.
+    //TODO maybe add persistence to rebuild in mem db, using fstream on a file.
 
 }
 
@@ -93,7 +93,6 @@ int KVStore::exists(const std::vector<std::string>& args)
             }
         }
         return exist;
-
     } catch (std::exception& e) {
         std::cerr << "Fail in exists: " << e.what() << std::endl;
         return 0;
@@ -171,3 +170,13 @@ void KVStore::flushall()
     dict.clear();
     //TODO clear file from persistence
 }
+
+std::vector<std::optional<std::string>> KVStore::mget(const std::vector<std::string>& args)
+{
+    std::vector<std::optional<std::string>> result;
+    for (const auto& i : args) {
+        result.push_back(get(i));
+    }
+    return result;
+}
+

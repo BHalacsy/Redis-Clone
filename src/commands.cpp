@@ -93,7 +93,6 @@ std::string handleIncr(KVStore& kvstore, const std::vector<std::string>& args)
     if (found) return std::format(":{}\r\n", found.value());
     return "-ERR value is not number or out of range\r\n";
 }
-
 std::string handleDcr(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1)
@@ -105,7 +104,6 @@ std::string handleDcr(KVStore& kvstore, const std::vector<std::string>& args)
     if (found) return std::format(":{}\r\n", found.value());
     return "-ERR value is not number or out of range\r\n";
 }
-
 std::string handleExpire(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 2)
@@ -122,7 +120,6 @@ std::string handleExpire(KVStore& kvstore, const std::vector<std::string>& args)
         return "-ERR seconds provided not number\r\n";
     }
 }
-
 std::string handleTTL(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1)
@@ -133,7 +130,6 @@ std::string handleTTL(KVStore& kvstore, const std::vector<std::string>& args)
     int found = kvstore.ttl(args[0]);
     return std::format(":{}\r\n", found);
 }
-
 std::string handleFlushall(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() > 0)
@@ -152,4 +148,17 @@ std::string handleMget(KVStore& kvstore, const std::vector<std::string>& args)
         std::cerr << "Command arguments malformed" << std::endl;
         return argumentError("1 or more", args.size());
     }
+    auto vals = kvstore.mget(args);
+    std::string resp = std::format("*{}\r\n", vals.size());
+    for (const auto& i : vals)
+    {
+        if (i == std::nullopt) resp += std::format("$-1\r\n");
+        else resp += std::format("${}\r\n{}\r\n", i->length(), *i);
+
+    }
+    return resp;
 }
+
+//TODO pub/sub
+//TODO advanced data structures and commands (lists,sets,hashs,sortedset)
+//TODO multi exec

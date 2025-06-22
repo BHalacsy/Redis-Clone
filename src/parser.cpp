@@ -10,6 +10,8 @@ std::vector<std::string> parseRESP(const char* buffer, size_t len, size_t& offse
 {
     if (offset >= len) throw std::runtime_error("Nothing to parse");
     char datatype = buffer[offset];
+    offset++;
+    std::cout << datatype << std::endl;
     switch (datatype)
     {
         case '+': return parseSimpleString(buffer, len, offset);
@@ -38,20 +40,27 @@ std::vector<std::string> parseInteger(const char* buffer, size_t len, size_t& of
 
 std::vector<std::string> parseBulkString(const char* buffer, size_t len, size_t& offset)
 {
+    std::cout << "hit bulk" << std::endl;
     std::string lenStr = readLine(buffer, len, offset);
+    std::cout << lenStr << std::endl;
     int lenNum = std::stoi(lenStr);
     if (lenNum == -1) return {};
     if (offset + lenNum + 2 > len) throw std::runtime_error("Incomplete bulk string");
+
     std::string retStr = readLine(buffer, len, offset);
-    offset += lenNum;
-    if (retStr.size() != len) throw std::runtime_error("Malformed bulk string");
+    std::cout << retStr.size() << std::endl;
+    std::cout << retStr << std::endl;
+    if (retStr.size() != lenNum) throw std::runtime_error("Malformed bulk string");
 
     return {retStr};
 }
 
 std::vector<std::string> parseArray(const char* buffer, size_t len, size_t& offset)
 {
+
+    std::cout << "hit" << std::endl;
     std::string lenStr = readLine(buffer, len, offset);
+    std::cout << lenStr << std::endl;
     int arrayLen = std::stoi(lenStr);
     std::vector<std::string> ret;
     for (ssize_t i = 0; i < arrayLen; i++)

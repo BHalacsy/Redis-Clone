@@ -6,33 +6,33 @@
 #include <iostream>
 
 
-inline char readByteSock(const int sock)
-{
-    char byte;
-    if (recv(sock, &byte, 1, 0) <= 0)
-    {
-        throw std::runtime_error("Connection closed (readByte)");
-    }
-    return byte;
-}
+// inline char readByteSock(const int sock)
+// {
+//     char byte;
+//     if (recv(sock, &byte, 1, 0) <= 0)
+//     {
+//         throw std::runtime_error("Connection closed (readByte)");
+//     }
+//     return byte;
+// }
 
-inline std::string readLineSock(const int sock)
-{
-    std::string retString;
-    while (true)
-    {
-        const char byte = readByteSock(sock);
-        if (byte == '\r')
-        {
-            if (readByteSock(sock) != '\n')
-            {
-                throw std::runtime_error("Malformed readLine");
-            }
-            return retString;
-        }
-        retString.push_back(byte);
-    }
-}
+// inline std::string readLineSock(const int sock)
+// {
+//     std::string retString;
+//     while (true)
+//     {
+//         const char byte = readByteSock(sock);
+//         if (byte == '\r')
+//         {
+//             if (readByteSock(sock) != '\n')
+//             {
+//                 throw std::runtime_error("Malformed readLine");
+//             }
+//             return retString;
+//         }
+//         retString.push_back(byte);
+//     }
+// }
 
 
 inline std::string readLine(const char* buffer, size_t len, size_t& offset)

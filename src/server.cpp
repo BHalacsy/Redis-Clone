@@ -16,7 +16,6 @@
 
 Server::Server(const int port) : hostIP("127.0.0.1"), servPort(port)
 {
-    //TODO basic construction here
     std::cout << "Server created" << std::endl;
     this->sock = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -48,7 +47,7 @@ Server::~Server()
 
 [[noreturn]] void Server::start()
 {
-    //TODO for connection IMPLEMENT HANDSHAKE and concurrency
+    //TODO for connection IMPLEMENT HANDSHAKE and threadpoll
     while (true)
     {
         sockaddr_in connectionAddress{};
