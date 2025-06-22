@@ -5,56 +5,59 @@
 #include <parser.hpp>
 #include <util.hpp>
 
-//TODO overall change to not read line by line to reduce sys calls also maybe not each ret vector<string> if possible
-std::vector<std::string> parseRESP(const char datatype, const int sock)
+//TODO make sure pipelining works (check for incomplete commands)
+std::vector<std::string> parseRESP(const char* buffer, size_t len, size_t& offset)
 {
+    if (offset >= len) throw std::runtime_error("Nothing to parse");
+    char datatype = buffer[offset];
     switch (datatype)
     {
-        case '+': return parseSimpleString(sock);
-        case '-': return parseError(sock);
-        case ':': return parseInteger(sock);
-        case '$': return parseBulkString(sock);
-        case '*': return parseArray(sock);
+        case '+': return parseSimpleString(buffer, len, offset);
+        case '-': return parseError(buffer, len, offset);
+        case ':': return parseInteger(buffer, len, offset);
+        case '$': return parseBulkString(buffer, len, offset);
+        case '*': return parseArray(buffer, len, offset);
         default: throw std::runtime_error("RESP type not yet implemented or handled");
     }
 }
 
-std::vector<std::string> parseSimpleString(const int sock)
+std::vector<std::string> parseSimpleString(const char* buffer, size_t len, size_t& offset)
 {
-    return {readLine(sock)};
+    return {readLine(buffer, len, offset)};
 }
 
-std::vector<std::string> parseError(const int sock)
+std::vector<std::string> parseError(const char* buffer, size_t len, size_t& offset)
 {
-    return splitSpaces(readLine(sock));
+    return splitSpaces(readLine(buffer, len, offset));
 }
 
-std::vector<std::string> parseInteger(const int sock)
+std::vector<std::string> parseInteger(const char* buffer, size_t len, size_t& offset)
 {
-    return {readLine(sock)};
+    return {readLine(buffer, len, offset)};
 }
 
-std::vector<std::string> parseBulkString(const int sock)
+std::vector<std::string> parseBulkString(const char* buffer, size_t len, size_t& offset)
 {
-    std::string lenStr = readLine(sock);
-    int len = std::stoi(lenStr);
-    if (len == -1) return {};
-
-    std::string retStr = readLine(sock);
+    std::string lenStr = readLine(buffer, len, offset);
+    int lenNum = std::stoi(lenStr);
+    if (lenNum == -1) return {};
+    if (offset + lenNum + 2 > len) throw std::runtime_error("Incomplete bulk string");
+    std::string retStr = readLine(buffer, len, offset);
+    offset += lenNum;
     if (retStr.size() != len) throw std::runtime_error("Malformed bulk string");
 
     return {retStr};
 }
 
-std::vector<std::string> parseArray(const int sock)
+std::vector<std::string> parseArray(const char* buffer, size_t len, size_t& offset)
 {
-    std::string lenStr = readLine(sock);
+    std::string lenStr = readLine(buffer, len, offset);
     int arrayLen = std::stoi(lenStr);
     std::vector<std::string> ret;
     for (ssize_t i = 0; i < arrayLen; i++)
     {
-        char type = readByte(sock);
-        std::vector<std::string> element = parseRESP(type, sock);
+        if (offset >= len) throw std::runtime_error("Incomplete array element");
+        std::vector<std::string> element = parseRESP(buffer, len, offset);
         if (!element.empty()) ret.push_back(element[0]);
     }
     return ret;

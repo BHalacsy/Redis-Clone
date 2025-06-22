@@ -64,13 +64,15 @@ Server::~Server()
 void Server::handleCommunication(int clientSock, sockaddr_in clientAddress)
 {
     std::cout << "New connection" << std::endl;
+    char buffer[4096];
     while (true)
     {
         try
         {
-            //read and parse
-            const char data = readByte(clientSock);
-            std::vector<std::string> command = parseRESP(data, clientSock);
+            ssize_t bytesRead = recv(clientSock, &buffer, sizeof(buffer), 0);
+            if (bytesRead <= 0) break;
+            size_t offset = 0;
+            std::vector<std::string> command = parseRESP(buffer, bytesRead, offset);
 
             //handle and return
             std::string resp = handleCommand(command);

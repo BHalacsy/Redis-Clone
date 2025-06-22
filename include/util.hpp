@@ -6,7 +6,7 @@
 #include <iostream>
 
 
-inline char readByte(const int sock)
+inline char readByteSock(const int sock)
 {
     char byte;
     if (recv(sock, &byte, 1, 0) <= 0)
@@ -16,15 +16,15 @@ inline char readByte(const int sock)
     return byte;
 }
 
-inline std::string readLine(const int sock)
+inline std::string readLineSock(const int sock)
 {
     std::string retString;
     while (true)
     {
-        const char byte = readByte(sock);
+        const char byte = readByteSock(sock);
         if (byte == '\r')
         {
-            if (readByte(sock) != '\n')
+            if (readByteSock(sock) != '\n')
             {
                 throw std::runtime_error("Malformed readLine");
             }
@@ -32,6 +32,22 @@ inline std::string readLine(const int sock)
         }
         retString.push_back(byte);
     }
+}
+
+
+inline std::string readLine(const char* buffer, size_t len, size_t& offset)
+{
+    size_t readStart = offset;
+    while (offset + 1 < len)
+    {
+        if (buffer[offset] == '\r' && buffer[offset + 1] == '\n') {
+            std::string line(buffer + readStart, offset - readStart);
+            offset += 2;
+            return line;
+        }
+        offset++;
+    }
+    throw std::runtime_error("Incomplete command in readLine");
 }
 
 inline std::vector<std::string> splitSpaces(const std::string& line)

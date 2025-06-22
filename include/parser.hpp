@@ -6,12 +6,12 @@
 #include <RESPtype.hpp>
 
 
-std::vector<std::string> parseRESP(char datatype, int sock);
-std::vector<std::string> parseSimpleString(int sock);
-std::vector<std::string> parseError(int sock);
-std::vector<std::string> parseInteger(int sock);
-std::vector<std::string> parseBulkString(int sock);
-std::vector<std::string> parseArray(int sock);
+std::vector<std::string> parseRESP(const char* buffer, size_t len, size_t& offset);
+std::vector<std::string> parseSimpleString(const char* buffer, size_t len, size_t& offset);
+std::vector<std::string> parseError(const char* buffer, size_t len, size_t& offset);
+std::vector<std::string> parseInteger(const char* buffer, size_t len, size_t& offset);
+std::vector<std::string> parseBulkString(const char* buffer, size_t len, size_t& offset);
+std::vector<std::string> parseArray(const char* buffer, size_t len, size_t& offset);
 
 std::string parseCommandToRESP(const std::string& command); // not sure yet
 int intParser(const std::string& line);
