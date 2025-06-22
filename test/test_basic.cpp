@@ -202,7 +202,7 @@ TEST_CASE("Mget method", "[mget][kvstore method][unit]")
         REQUIRE(res.size() == 3);
         REQUIRE(res[0] == "1");
         REQUIRE(res[1] == "2");
-        REQUIRE(res[1] == std::nullopt);
+        REQUIRE(res[2] == std::nullopt);
     }
 
     SECTION("Mget empty key list")
