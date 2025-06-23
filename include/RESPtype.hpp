@@ -2,6 +2,7 @@
 
 #include <deque>
 #include <variant>
+#include <unordered_set>
 #include <set>
 #include <unordered_map>
 #include <string>
@@ -15,7 +16,8 @@ struct RESPValue
     std::variant<
     std::string, //ints are stored as strings
     std::deque<std::string>,
-    std::set<std::string>,
-    std::unordered_map<std::string, std::string>
+    std::unordered_set<std::string>,
+    std::unordered_map<std::string, std::string>,
+    std::set<std::string>
     > value;
 };

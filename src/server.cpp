@@ -112,6 +112,15 @@ std::string Server::handleCommand(const std::vector<std::string>& command) //may
         case Commands::TTL: return handleTTL(kvstore, arguments);
         case Commands::FLUSHALL: return handleFlushall(kvstore, arguments);
         case Commands::MGET: return handleMget(kvstore, arguments);
+        case Commands::LPUSH: return handleLpush(kvstore, arguments);
+        case Commands::RPUSH: return handleRpush(kvstore, arguments);
+        case Commands::LPOP: return handleLpop(kvstore, arguments);
+        case Commands::RPOP: return handleRpop(kvstore, arguments);
+        case Commands::LRANGE: return handleLrange(kvstore, arguments);
+        case Commands::LLEN: return handleLlen(kvstore, arguments);
+        case Commands::LINDEX: return handleLindex(kvstore, arguments);
+        case Commands::LSET: return handleLset(kvstore, arguments);
+        case Commands::LREM: return handleLrem(kvstore, arguments);
         default:
             std::cerr << "Command not handled" << std::endl;
             return std::format("-ERR unknown command '{}'", command[0]);//send error
