@@ -33,7 +33,7 @@ std::optional<std::string> KVStore::get(const std::string& k)
     {
         removeExp(k);
         auto found = dict.find(k);
-        if (found != dict.end()) return found->second;
+        if (found != dict.end()) return std::get<std::string>(found->second.value);
         return std::nullopt;
     } catch (std::exception& e) {
         std::cerr << "Fail in get: " << e.what() << std::endl;
@@ -44,10 +44,11 @@ std::optional<std::string> KVStore::get(const std::string& k)
 bool KVStore::set(const std::string& k, const std::string& v)
 {
     std::lock_guard lock(mtx);
+    auto val = RESPValue{valueType::STR, v};
     try
     {
-        if (dict.contains(k)) dict[k] = v;
-        else dict.insert({k,v});
+        if (dict.contains(k)) dict[k] = val;
+        else dict.insert({k,val});
         expTable.erase(k);
         return true;
     } catch (std::exception& e) {
@@ -107,18 +108,18 @@ std::optional<int> KVStore::incr(const std::string& k)
     int ret = 0;
     if (found == dict.end())
     {
-        dict[k] = "1";
+        dict[k] = RESPValue{valueType::STR, "1"};
         return 1;
     }
 
-    try { ret = std::stoi(found->second); }
+    try { ret = std::stoi(std::get<std::string>(found->second.value)); }
     catch (std::exception& e) {
         std::cerr << "Fail in incr: " << e.what() << std::endl;
         return std::nullopt;
     }
 
     ret++;
-    found->second = std::to_string(ret);
+    found->second.value = std::string(std::to_string(ret));
     return ret;
 }
 
@@ -130,18 +131,18 @@ std::optional<int> KVStore::dcr(const std::string& k)
     int ret = 0;
     if (found == dict.end())
     {
-        dict[k] = "-1";
+        dict[k] = RESPValue{valueType::STR, "-1"};
         return -1;
     }
 
-    try{ ret = std::stoi(found->second);}
+    try{ ret = std::stoi(std::get<std::string>(found->second.value));}
     catch (std::exception& e) {
         std::cerr << "Fail in dcr: " << e.what() << std::endl;
         return std::nullopt;
     }
 
     ret--;
-    found->second = std::to_string(ret);
+    found->second.value = std::string(std::to_string(ret));
     return ret;
 }
 

@@ -4,6 +4,7 @@
 #include <string>
 #include <RESPtype.hpp>
 #include <optional>
+#include <mutex>
 
 class KVStore {
 public:
@@ -11,6 +12,7 @@ public:
     ~KVStore();
 
     void removeExp(const std::string& k);
+    bool loadDisk()
 
     std::optional<std::string> get(const std::string& k);
     bool set(const std::string& k, const std::string& v);
@@ -24,7 +26,7 @@ public:
     std::vector<std::optional<std::string>> mget(const std::vector<std::string>& args);
 
 private:
-    std::unordered_map<std::string,std::string> dict;
+    std::unordered_map<std::string,RESPValue> dict;
     std::unordered_map<std::string,std::chrono::steady_clock::time_point> expTable;
     std::mutex mtx;
 };

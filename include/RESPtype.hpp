@@ -1,19 +1,21 @@
 #pragma once
 
-#include <vector>
+#include <deque>
 #include <variant>
-#include <memory>
+#include <set>
+#include <unordered_map>
 #include <string>
 
 //for when implementing all various datatypes, maybe have vector<RESPvalue>
-struct RESPValue;
+enum class valueType {STR, LIST, SET, HASH, SSET};
 
-using RESPValueWrapper = std::variant<
-    std::string,
-    int64_t,
-    std::vector<std::string>
->;
-
-struct RESPValue {
-    RESPValueWrapper value;
+struct RESPValue
+{
+    valueType type;
+    std::variant<
+    std::string, //ints are stored as strings
+    std::deque<std::string>,
+    std::set<std::string>,
+    std::unordered_map<std::string, std::string>
+    > value;
 };
