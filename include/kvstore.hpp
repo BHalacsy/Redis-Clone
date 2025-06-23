@@ -12,7 +12,7 @@ public:
     ~KVStore();
 
     void removeExp(const std::string& k);
-    bool loadDisk()
+    bool loadDisk();
 
     std::optional<std::string> get(const std::string& k);
     bool set(const std::string& k, const std::string& v);
