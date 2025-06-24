@@ -33,7 +33,7 @@ Commands strToCmd(const std::string& cmd)
     return Commands::UNKNOWN;
 }
 
-std::string handlePing(const std::vector<std::string>& args)
+std::string handlePING(const std::vector<std::string>& args)
 {
     if (args.size() > 1)
     {
@@ -43,7 +43,7 @@ std::string handlePing(const std::vector<std::string>& args)
 
     return args.size() == 1 ? std::format("${}\r\n{}\r\n", args[0].length(), args[0]) : "+PONG\r\n";
 }
-std::string handleEcho(const std::vector<std::string>& args)
+std::string handleECHO(const std::vector<std::string>& args)
 {
     if (args.size() != 1)
     {
@@ -52,7 +52,7 @@ std::string handleEcho(const std::vector<std::string>& args)
     }
     return std::format("${}\r\n{}\r\n", args[0].length(), args[0]);
 }
-std::string handleSet(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleSET(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 2)
     {
@@ -61,7 +61,7 @@ std::string handleSet(KVStore& kvstore, const std::vector<std::string>& args)
     }
     return kvstore.set(args[0], args[1]) ? "+OK\r\n" : "-ERR something went wrong in set\r\n";
 }
-std::string handleGet(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleGET(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1)
     {
@@ -71,7 +71,7 @@ std::string handleGet(KVStore& kvstore, const std::vector<std::string>& args)
     auto val = kvstore.get(args[0]);
     return val ? std::format("${}\r\n{}\r\n", val->length(), val.value()) : "$-1\r\n";
 }
-std::string handleDel(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleDEL(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() < 1)
     {
@@ -81,7 +81,7 @@ std::string handleDel(KVStore& kvstore, const std::vector<std::string>& args)
     int deleted = kvstore.del(args);
     return std::format(":{}\r\n",deleted);
 }
-std::string handleExists(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleEXISTS(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() < 1)
     {
@@ -91,7 +91,7 @@ std::string handleExists(KVStore& kvstore, const std::vector<std::string>& args)
     int found = kvstore.exists(args);
     return std::format(":{}\r\n", found);
 }
-std::string handleIncr(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleINCR(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1)
     {
@@ -102,7 +102,7 @@ std::string handleIncr(KVStore& kvstore, const std::vector<std::string>& args)
     if (found) return std::format(":{}\r\n", found.value());
     return "-ERR value is not number or out of range\r\n";
 }
-std::string handleDcr(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleDCR(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1)
     {
@@ -113,7 +113,7 @@ std::string handleDcr(KVStore& kvstore, const std::vector<std::string>& args)
     if (found) return std::format(":{}\r\n", found.value());
     return "-ERR value is not number or out of range\r\n";
 }
-std::string handleExpire(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleEXPIRE(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 2)
     {
@@ -139,7 +139,7 @@ std::string handleTTL(KVStore& kvstore, const std::vector<std::string>& args)
     int found = kvstore.ttl(args[0]);
     return std::format(":{}\r\n", found);
 }
-std::string handleFlushall(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleFLUSHALL(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() > 0)
     {
@@ -149,7 +149,7 @@ std::string handleFlushall(KVStore& kvstore, const std::vector<std::string>& arg
     kvstore.flushall();
     return "+OK\r\n";
 }
-std::string handleMget(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleMGET(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() < 1)
     {
@@ -166,8 +166,8 @@ std::string handleMget(KVStore& kvstore, const std::vector<std::string>& args)
     }
     return resp;
 }
-
-std::string handleLpush(KVStore& kvstore, const std::vector<std::string>& args)
+//List commands
+std::string handleLPUSH(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() < 1)
     {
@@ -175,8 +175,7 @@ std::string handleLpush(KVStore& kvstore, const std::vector<std::string>& args)
         return argumentError("1 or more", args.size());
     }
 }
-
-std::string handleRpush(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleRPUSH(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() < 1)
     {
@@ -184,8 +183,7 @@ std::string handleRpush(KVStore& kvstore, const std::vector<std::string>& args)
         return argumentError("1 or more", args.size());
     }
 }
-
-std::string handleLpop(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleLPOP(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1)
     {
@@ -193,8 +191,7 @@ std::string handleLpop(KVStore& kvstore, const std::vector<std::string>& args)
         return argumentError("1", args.size());
     }
 }
-
-std::string handleRpop(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleRPOP(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1)
     {
@@ -202,8 +199,7 @@ std::string handleRpop(KVStore& kvstore, const std::vector<std::string>& args)
         return argumentError("1", args.size());
     }
 }
-
-std::string handleLrange(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleLRANGE(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 3)
     {
@@ -211,8 +207,7 @@ std::string handleLrange(KVStore& kvstore, const std::vector<std::string>& args)
         return argumentError("3", args.size());
     }
 }
-
-std::string handleLlen(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleLLEN(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1)
     {
@@ -220,8 +215,7 @@ std::string handleLlen(KVStore& kvstore, const std::vector<std::string>& args)
         return argumentError("1", args.size());
     }
 }
-
-std::string handleLindex(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleLINDEX(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 2)
     {
@@ -229,8 +223,7 @@ std::string handleLindex(KVStore& kvstore, const std::vector<std::string>& args)
         return argumentError("2", args.size());
     }
 }
-
-std::string handleLset(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleLSET(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 3)
     {
@@ -238,13 +231,61 @@ std::string handleLset(KVStore& kvstore, const std::vector<std::string>& args)
         return argumentError("3", args.size());
     }
 }
-
-std::string handleLrem(KVStore& kvstore, const std::vector<std::string>& args)
+std::string handleLREM(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 3)
     {
         std::cerr << "Command arguments malformed" << std::endl;
         return argumentError("3", args.size());
+    }
+}
+//Set commands
+std::string handleSADD(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() < 2)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("2 or more", args.size());
+    }
+}
+std::string handleSREM(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() < 2)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("2 or more", args.size());
+    }
+}
+std::string handleSISMEMBER(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() != 2)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("2", args.size());
+    }
+}
+std::string handleSMEMBERS(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() != 1)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("1", args.size());
+    }
+}
+std::string handleSCARD(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() != 1)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("1", args.size());
+    }
+}
+std::string handleSPOP(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() != 1 || args.size() != 2)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("1 or 2", args.size());
     }
 }
 

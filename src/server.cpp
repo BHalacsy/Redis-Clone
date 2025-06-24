@@ -100,27 +100,33 @@ std::string Server::handleCommand(const std::vector<std::string>& command) //may
     switch (strToCmd(command[0]))
     {
         //TODO make commands be associated with Comands class emu thing
-        case Commands::PING: return handlePing(arguments);
-        case Commands::ECHO: return handleEcho(arguments);
-        case Commands::SET: return handleSet(kvstore, arguments);
-        case Commands::GET: return handleGet(kvstore, arguments);
-        case Commands::DEL: return handleDel(kvstore, arguments);
-        case Commands::EXISTS: return handleExists(kvstore, arguments);
-        case Commands::INCR: return handleIncr(kvstore, arguments);
-        case Commands::DCR: return handleDcr(kvstore, arguments);
-        case Commands::EXPIRE: return handleExpire(kvstore, arguments);
+        case Commands::PING: return handlePING(arguments);
+        case Commands::ECHO: return handleECHO(arguments);
+        case Commands::SET: return handleSET(kvstore, arguments);
+        case Commands::GET: return handleGET(kvstore, arguments);
+        case Commands::DEL: return handleDEL(kvstore, arguments);
+        case Commands::EXISTS: return handleEXISTS(kvstore, arguments);
+        case Commands::INCR: return handleINCR(kvstore, arguments);
+        case Commands::DCR: return handleDCR(kvstore, arguments);
+        case Commands::EXPIRE: return handleEXPIRE(kvstore, arguments);
         case Commands::TTL: return handleTTL(kvstore, arguments);
-        case Commands::FLUSHALL: return handleFlushall(kvstore, arguments);
-        case Commands::MGET: return handleMget(kvstore, arguments);
-        case Commands::LPUSH: return handleLpush(kvstore, arguments);
-        case Commands::RPUSH: return handleRpush(kvstore, arguments);
-        case Commands::LPOP: return handleLpop(kvstore, arguments);
-        case Commands::RPOP: return handleRpop(kvstore, arguments);
-        case Commands::LRANGE: return handleLrange(kvstore, arguments);
-        case Commands::LLEN: return handleLlen(kvstore, arguments);
-        case Commands::LINDEX: return handleLindex(kvstore, arguments);
-        case Commands::LSET: return handleLset(kvstore, arguments);
-        case Commands::LREM: return handleLrem(kvstore, arguments);
+        case Commands::FLUSHALL: return handleFLUSHALL(kvstore, arguments);
+        case Commands::MGET: return handleMGET(kvstore, arguments);
+        case Commands::LPUSH: return handleLPUSH(kvstore, arguments);
+        case Commands::RPUSH: return handleRPUSH(kvstore, arguments);
+        case Commands::LPOP: return handleLPOP(kvstore, arguments);
+        case Commands::RPOP: return handleRPOP(kvstore, arguments);
+        case Commands::LRANGE: return handleLRANGE(kvstore, arguments);
+        case Commands::LLEN: return handleLLEN(kvstore, arguments);
+        case Commands::LINDEX: return handleLINDEX(kvstore, arguments);
+        case Commands::LSET: return handleLSET(kvstore, arguments);
+        case Commands::LREM: return handleLREM(kvstore, arguments);
+        case Commands::SADD: return handleSADD(kvstore, arguments);
+        case Commands::SREM: return handleSREM(kvstore, arguments);
+        case Commands::SISMEMBER: return handleSISMEMBER(kvstore, arguments);
+        case Commands::SMEMBERS: return handleSMEMBERS(kvstore, arguments);
+        case Commands::SCARD: return handleSCARD(kvstore, arguments);
+        case Commands::SPOP return handleSPOP(kvstore, arguments);
         default:
             std::cerr << "Command not handled" << std::endl;
             return std::format("-ERR unknown command '{}'", command[0]);//send error
