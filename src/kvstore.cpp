@@ -4,17 +4,17 @@
 #include <iostream>
 #include <mutex>
 
-KVStore::KVStore()
+KVStore::KVStore(const bool persist, const std::string& fileName = "") : persistenceToggle(persist), persistenceFile(fileName)
 {
-    //TODO maybe add persistence to rebuild in mem db, using fstream on a file.
-
+    if (persistenceToggle) loadFromDisk();
 }
 
 KVStore::~KVStore()
 {
-    //Save everything to the disk?
+    if (persistenceToggle) loadToDisk();
 }
 
+//Helpers
 void KVStore::removeExp(const std::string& k)
 {
     auto found = expTable.find(k);
@@ -25,7 +25,16 @@ void KVStore::removeExp(const std::string& k)
         expTable.erase(found);
     }
 }
+void loadFromDisk()
+{
 
+}
+void saveToDisk()
+{
+
+}
+
+//Basics
 std::optional<std::string> KVStore::get(const std::string& k)
 {
     std::lock_guard lock(mtx);
@@ -40,7 +49,6 @@ std::optional<std::string> KVStore::get(const std::string& k)
         return std::nullopt;
     }
 }
-
 bool KVStore::set(const std::string& k, const std::string& v)
 {
     std::lock_guard lock(mtx);
@@ -56,7 +64,6 @@ bool KVStore::set(const std::string& k, const std::string& v)
         return false;
     }
 }
-
 int KVStore::del(const std::vector<std::string>& args)
 {
     std::lock_guard lock(mtx);
@@ -78,7 +85,6 @@ int KVStore::del(const std::vector<std::string>& args)
         return 0;
     }
 }
-
 int KVStore::exists(const std::vector<std::string>& args)
 {
     std::lock_guard<std::mutex> lock(mtx);
@@ -99,7 +105,6 @@ int KVStore::exists(const std::vector<std::string>& args)
         return 0;
     }
 }
-
 std::optional<int> KVStore::incr(const std::string& k)
 {
     std::lock_guard lock(mtx);
@@ -122,7 +127,6 @@ std::optional<int> KVStore::incr(const std::string& k)
     found->second.value = std::string(std::to_string(ret));
     return ret;
 }
-
 std::optional<int> KVStore::dcr(const std::string& k)
 {
     std::lock_guard lock(mtx);
@@ -145,7 +149,6 @@ std::optional<int> KVStore::dcr(const std::string& k)
     found->second.value = std::string(std::to_string(ret));
     return ret;
 }
-
 bool KVStore::expire(const std::string& k, int s)
 {
     std::lock_guard lock(mtx);
@@ -153,7 +156,6 @@ bool KVStore::expire(const std::string& k, int s)
     expTable[k] = std::chrono::steady_clock::now() + std::chrono::seconds(s);
     return true;
 }
-
 int KVStore::ttl(const std::string& k)
 {
     std::lock_guard lock(mtx);
@@ -163,7 +165,6 @@ int KVStore::ttl(const std::string& k)
     auto duration = expTable.at(k) - std::chrono::steady_clock::now();
     return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(duration).count());
 }
-
 void KVStore::flushall()
 {
     std::lock_guard lock(mtx);
@@ -171,7 +172,6 @@ void KVStore::flushall()
     dict.clear();
     //TODO clear file from persistence
 }
-
 std::vector<std::optional<std::string>> KVStore::mget(const std::vector<std::string>& args)
 {
     std::vector<std::optional<std::string>> result;

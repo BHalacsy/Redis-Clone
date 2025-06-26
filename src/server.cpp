@@ -14,11 +14,10 @@
 
 
 
-Server::Server(const int port) : hostIP("127.0.0.1"), servPort(port)
+Server::Server(const int port) : hostIP("127.0.0.1"), servPort(port), kvstore(true, "dump") //TODO change dump to fitting value
 {
     std::cout << "Server created" << std::endl;
     this->sock = socket(AF_INET, SOCK_STREAM, 0);
-
 
     sockaddr_in sockAddress;
     sockAddress.sin_family = AF_INET;
@@ -27,8 +26,11 @@ Server::Server(const int port) : hostIP("127.0.0.1"), servPort(port)
 
     try
     {
-        if (bind(this->sock, reinterpret_cast<sockaddr*>(&sockAddress), sizeof(sockAddress)) != 0) {throw std::runtime_error("server bind failed");}
-        if (listen(this->sock, 5) != 0) {throw std::runtime_error("server listen failed");}
+        if (bind(this->sock, reinterpret_cast<sockaddr*>(&sockAddress), sizeof(sockAddress)) != 0)
+        {
+            throw std::runtime_error("server bind failed");
+        }
+        if (listen(this->sock, 5) != 0) { throw std::runtime_error("server listen failed"); }
         std::cout << "Listening on: " << hostIP << " : " << servPort << std::endl;
     }
     catch (const std::exception& e)
@@ -47,7 +49,7 @@ Server::~Server()
 
 [[noreturn]] void Server::start()
 {
-    //TODO for connection IMPLEMENT HANDSHAKE and threadpoll
+    //TODO for connection IMPLEMENT HANDSHAKE and thread poll
     while (true)
     {
         sockaddr_in connectionAddress{};
@@ -60,7 +62,7 @@ Server::~Server()
     }
 }
 
-void Server::handleCommunication(int clientSock, sockaddr_in clientAddress)
+void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress)
 {
     std::cout << "New connection" << std::endl;
     char buffer[4096];
@@ -68,7 +70,7 @@ void Server::handleCommunication(int clientSock, sockaddr_in clientAddress)
     {
         try
         {
-            ssize_t bytesRead = recv(clientSock, &buffer, sizeof(buffer), 0);
+            const ssize_t bytesRead = recv(clientSock, &buffer, sizeof(buffer), 0);
             if (bytesRead <= 0) break;
             size_t offset = 0;
             std::vector<std::string> command = parseRESP(buffer, bytesRead, offset);
@@ -87,19 +89,17 @@ void Server::handleCommunication(int clientSock, sockaddr_in clientAddress)
 
 std::string Server::handleCommand(const std::vector<std::string>& command) //maybe change to handle resp
 {
-    std::string response;
     const std::vector arguments(command.begin() + 1, command.end());
 
     if (command.empty())
     {
         std::cerr << "Command empty" << std::endl;
-        response = "-ERR command line empty\r\n";
-        return response;
+        return "-ERR command line empty\r\n";
     }
 
     switch (strToCmd(command[0]))
     {
-        //TODO make commands be associated with Comands class emu thing
+        //TODO make commands be associated with Commands class emu thing
         case Commands::PING: return handlePING(arguments);
         case Commands::ECHO: return handleECHO(arguments);
         case Commands::SET: return handleSET(kvstore, arguments);
@@ -126,7 +126,7 @@ std::string Server::handleCommand(const std::vector<std::string>& command) //may
         case Commands::SISMEMBER: return handleSISMEMBER(kvstore, arguments);
         case Commands::SMEMBERS: return handleSMEMBERS(kvstore, arguments);
         case Commands::SCARD: return handleSCARD(kvstore, arguments);
-        case Commands::SPOP return handleSPOP(kvstore, arguments);
+        case Commands::SPOP: return handleSPOP(kvstore, arguments);
         default:
             std::cerr << "Command not handled" << std::endl;
             return std::format("-ERR unknown command '{}'", command[0]);//send error
