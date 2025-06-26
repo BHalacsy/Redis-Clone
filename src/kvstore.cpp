@@ -11,7 +11,7 @@ KVStore::KVStore(const bool persist, const std::string& fileName = "") : persist
 
 KVStore::~KVStore()
 {
-    if (persistenceToggle) loadToDisk();
+    if (persistenceToggle) saveToDisk();
 }
 
 //Helpers
