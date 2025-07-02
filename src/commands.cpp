@@ -166,129 +166,203 @@ std::string handleMGET(KVStore& kvstore, const std::vector<std::string>& args)
     }
     return resp;
 }
-//List commands
-std::string handleLPUSH(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() < 1)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("1 or more", args.size());
-    }
-}
-std::string handleRPUSH(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() < 1)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("1 or more", args.size());
-    }
-}
-std::string handleLPOP(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() != 1)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("1", args.size());
-    }
-}
-std::string handleRPOP(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() != 1)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("1", args.size());
-    }
-}
-std::string handleLRANGE(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() != 3)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("3", args.size());
-    }
-}
-std::string handleLLEN(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() != 1)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("1", args.size());
-    }
-}
-std::string handleLINDEX(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() != 2)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("2", args.size());
-    }
-}
-std::string handleLSET(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() != 3)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("3", args.size());
-    }
-}
-std::string handleLREM(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() != 3)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("3", args.size());
-    }
-}
-//Set commands
-std::string handleSADD(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() < 2)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("2 or more", args.size());
-    }
-}
-std::string handleSREM(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() < 2)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("2 or more", args.size());
-    }
-}
-std::string handleSISMEMBER(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() != 2)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("2", args.size());
-    }
-}
-std::string handleSMEMBERS(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() != 1)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("1", args.size());
-    }
-}
-std::string handleSCARD(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() != 1)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("1", args.size());
-    }
-}
-std::string handleSPOP(KVStore& kvstore, const std::vector<std::string>& args)
-{
-    if (args.size() != 1 || args.size() != 2)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("1 or 2", args.size());
-    }
-}
+// //List commands
+// std::string handleLPUSH(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() < 1)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("1 or more", args.size());
+//     }
+// }
+// std::string handleRPUSH(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() < 1)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("1 or more", args.size());
+//     }
+// }
+// std::string handleLPOP(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 1)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("1", args.size());
+//     }
+// }
+// std::string handleRPOP(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 1)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("1", args.size());
+//     }
+// }
+// std::string handleLRANGE(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 3)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("3", args.size());
+//     }
+// }
+// std::string handleLLEN(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 1)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("1", args.size());
+//     }
+// }
+// std::string handleLINDEX(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 2)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("2", args.size());
+//     }
+// }
+// std::string handleLSET(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 3)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("3", args.size());
+//     }
+// }
+// std::string handleLREM(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 3)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("3", args.size());
+//     }
+// }
+// //Set commands
+// std::string handleSADD(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() < 2)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("2 or more", args.size());
+//     }
+// }
+// std::string handleSREM(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() < 2)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("2 or more", args.size());
+//     }
+// }
+// std::string handleSISMEMBER(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 2)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("2", args.size());
+//     }
+// }
+// std::string handleSMEMBERS(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 1)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("1", args.size());
+//     }
+// }
+// std::string handleSCARD(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 1)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("1", args.size());
+//     }
+// }
+// std::string handleSPOP(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 1 || args.size() != 2)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("1 or 2", args.size());
+//     }
+// }
+// //Hash commands
+// std::string handleHSET(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() < 3)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("3 or more", args.size());
+//     }
+// }
+// std::string handleHGET(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 2)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("2", args.size());
+//     }
+// }
+// std::string handleHDEL(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() < 2)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("2 or more", args.size());
+//     }
+// }
+// std::string handleHEXISTS(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 2)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("2", args.size());
+//     }
+// }
+// std::string handleHLEN(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 1)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("1", args.size());
+//     }
+// }
+// std::string handleHKEYS(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 1)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("1", args.size());
+//     }
+// }
+// std::string handleHVALS(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 1)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("1", args.size());
+//     }
+// }
+// std::string handleHMGET(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() < 2)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("2", args.size());
+//     }
+// }
+// std::string handleHGETALL(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 1)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("1", args.size());
+//     }
+// }
 
 //TODO pub/sub
 //TODO advanced data structures and commands (lists,sets,hashs,sortedset)
 //TODO multi exec
+//TODO threadpool

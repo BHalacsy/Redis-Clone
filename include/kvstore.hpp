@@ -8,7 +8,7 @@
 
 class KVStore {
 public:
-    KVStore(bool persist, const std::string& fileName);
+    KVStore(bool persist, const std::string& fileName = "");
     ~KVStore();
 
     void removeExp(const std::string& k);
@@ -26,7 +26,6 @@ public:
     void flushall();
     std::vector<std::optional<std::string>> mget(const std::vector<std::string>& args);
 
-    //TODO define in kvstore.cpp
     int lpush(const std::vector<std::string>& args);
     int rpush(const std::vector<std::string>& args);
     std::optional<std::string> lpop(const std::string& k);
@@ -44,6 +43,15 @@ public:
     int scard(const std::string& k);
     std::vector<std::optional<std::string>> spop(const std::string& k, const int& count);
 
+    int hset(const std::string& k, const std::string& f, const std::string& v);
+    std::optional<std::string> hget(const std::string& k, const std::string& f);
+    int hdel(const std::vector<std::string>& args);
+    int hexists(const std::vector<std::string>& args);
+    int hlen(const std::string& k);
+    std::vector<std::optional<std::string>> hkeys(const std::string& k);
+    std::vector<std::optional<std::string>> hvals(const std::string& k);
+    bool hmset(const std::vector<std::string>& args);
+    std::vector<std::optional<std::string>> hmget(const std::vector<std::string>& args);
 
 
 private:
