@@ -9,7 +9,6 @@
 #include <parser.hpp>
 #include <kvstore.hpp>
 #include <util.hpp>
-#include <RESPtype.hpp>
 #include <commands.hpp>
 
 
@@ -19,7 +18,7 @@ Server::Server(const int port) : hostIP("127.0.0.1"), servPort(port), kvstore(tr
     std::cout << "Server created" << std::endl;
     this->sock = socket(AF_INET, SOCK_STREAM, 0);
 
-    sockaddr_in sockAddress;
+    sockaddr_in sockAddress{};
     sockAddress.sin_family = AF_INET;
     sockAddress.sin_addr.s_addr = inet_addr(hostIP.c_str());
     sockAddress.sin_port = htons(servPort);
@@ -55,7 +54,7 @@ Server::~Server()
         sockaddr_in connectionAddress{};
         socklen_t addLen = sizeof(connectionAddress);
 
-        std::cout << "Waiting for new connection..." << std::endl;
+        std::cout << "Waiting for new connections..." << std::endl;
         int connectionSock = accept(this->sock, reinterpret_cast<sockaddr*>(&connectionAddress), &addLen);
         std::thread worker(&Server::handleCommunication, this, connectionSock, connectionAddress);
         worker.detach();
@@ -112,15 +111,15 @@ std::string Server::handleCommand(const std::vector<std::string>& command) //may
         case Commands::TTL: return handleTTL(kvstore, arguments);
         case Commands::FLUSHALL: return handleFLUSHALL(kvstore, arguments);
         case Commands::MGET: return handleMGET(kvstore, arguments);
-        // case Commands::LPUSH: return handleLPUSH(kvstore, arguments);
-        // case Commands::RPUSH: return handleRPUSH(kvstore, arguments);
-        // case Commands::LPOP: return handleLPOP(kvstore, arguments);
-        // case Commands::RPOP: return handleRPOP(kvstore, arguments);
-        // case Commands::LRANGE: return handleLRANGE(kvstore, arguments);
-        // case Commands::LLEN: return handleLLEN(kvstore, arguments);
-        // case Commands::LINDEX: return handleLINDEX(kvstore, arguments);
-        // case Commands::LSET: return handleLSET(kvstore, arguments);
-        // case Commands::LREM: return handleLREM(kvstore, arguments);
+        case Commands::LPUSH: return handleLPUSH(kvstore, arguments);
+        case Commands::RPUSH: return handleRPUSH(kvstore, arguments);
+        case Commands::LPOP: return handleLPOP(kvstore, arguments);
+        case Commands::RPOP: return handleRPOP(kvstore, arguments);
+        case Commands::LRANGE: return handleLRANGE(kvstore, arguments);
+        case Commands::LLEN: return handleLLEN(kvstore, arguments);
+        case Commands::LINDEX: return handleLINDEX(kvstore, arguments);
+        case Commands::LSET: return handleLSET(kvstore, arguments);
+        case Commands::LREM: return handleLREM(kvstore, arguments);
         // case Commands::SADD: return handleSADD(kvstore, arguments);
         // case Commands::SREM: return handleSREM(kvstore, arguments);
         // case Commands::SISMEMBER: return handleSISMEMBER(kvstore, arguments);
@@ -134,8 +133,8 @@ std::string Server::handleCommand(const std::vector<std::string>& command) //may
         // case Commands::HLEN: return handleHLEN(kvstore, arguments);
         // case Commands::HKEYS: return handleHKEYS(kvstore, arguments);
         // case Commands::HVALS: return handleHVALS(kvstore, arguments);
+        // case Commands::HMSET: return handleHMSET(kvstore, arguments);
         // case Commands::HMGET: return handleHMGET(kvstore, arguments);
-        // case Commands::HGETALL: return handleHGETALL(kvstore, arguments);
         default:
             std::cerr << "Command not handled" << std::endl;
             return std::format("-ERR unknown command '{}'", command[0]);//send error

@@ -12,11 +12,13 @@ public:
     ~KVStore();
 
     void removeExp(const std::string& k);
+    std::optional<storeType> getType(const std::string& k);
     void loadFromDisk();
     void saveToDisk();
 
-    std::optional<std::string> get(const std::string& k);
+
     bool set(const std::string& k, const std::string& v);
+    std::optional<std::string> get(const std::string& k);
     int del(const std::vector<std::string>& args);
     int exists(const std::vector<std::string>& args);
     std::optional<int> incr(const std::string& k);
@@ -36,22 +38,22 @@ public:
     bool lset(const std::string& k, const int& index, const std::string& v);
     int lrem(const std::string& k, const int& count, const std::string& v);
 
-    int sadd(const std::vector<std::string>& args);
-    int srem(const std::vector<std::string>& args);
-    bool sismember(const std::string& k, const std::string& v);
-    std::vector<std::optional<std::string>> smembers(const std::string& k);
-    int scard(const std::string& k);
-    std::vector<std::optional<std::string>> spop(const std::string& k, const int& count);
-
-    int hset(const std::string& k, const std::string& f, const std::string& v);
-    std::optional<std::string> hget(const std::string& k, const std::string& f);
-    int hdel(const std::vector<std::string>& args);
-    int hexists(const std::vector<std::string>& args);
-    int hlen(const std::string& k);
-    std::vector<std::optional<std::string>> hkeys(const std::string& k);
-    std::vector<std::optional<std::string>> hvals(const std::string& k);
-    bool hmset(const std::vector<std::string>& args);
-    std::vector<std::optional<std::string>> hmget(const std::vector<std::string>& args);
+    // int sadd(const std::vector<std::string>& args);
+    // int srem(const std::vector<std::string>& args);
+    // bool sismember(const std::string& k, const std::string& v);
+    // std::vector<std::optional<std::string>> smembers(const std::string& k);
+    // int scard(const std::string& k);
+    // std::vector<std::optional<std::string>> spop(const std::string& k, const int& count);
+    //
+    // int hset(const std::string& k, const std::string& f, const std::string& v);
+    // std::optional<std::string> hget(const std::string& k, const std::string& f);
+    // int hdel(const std::vector<std::string>& args);
+    // bool hexists(const std::string& k, const std::string& f);
+    // int hlen(const std::string& k);
+    // std::vector<std::optional<std::string>> hkeys(const std::string& k);
+    // std::vector<std::optional<std::string>> hvals(const std::string& k);
+    // bool hmset(const std::vector<std::string>& args);
+    // std::vector<std::optional<std::string>> hmget(const std::vector<std::string>& args);
 
 
 private:

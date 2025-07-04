@@ -1,119 +1,111 @@
 #include <kvstore.hpp>
 #include <RESPtype.hpp>
-
 #include <iostream>
 #include <mutex>
 
 KVStore::KVStore(const bool persist, const std::string& fileName) : persistenceToggle(persist), persistenceFile(fileName)
 {
-    if (persistenceToggle) loadFromDisk();
+    // if (persistenceToggle) loadFromDisk();
 }
 
 KVStore::~KVStore()
 {
-    if (persistenceToggle) saveToDisk();
+    // if (persistenceToggle) saveToDisk();
 }
 
 //Helpers
 void KVStore::removeExp(const std::string& k)
 {
-    auto found = expTable.find(k);
-
-    if (found != expTable.end() && std::chrono::steady_clock::now() >= found->second)
+    if (auto found = expTable.find(k); found != expTable.end() && std::chrono::steady_clock::now() >= found->second)
     {
         dict.erase(k);
         expTable.erase(found);
     }
 }
+std::optional<storeType> KVStore::getType(const std::string& k) {
+    std::lock_guard lock(mtx);
+    removeExp(k);
+    auto it = dict.find(k);
+    if (it == dict.end()) return std::nullopt;
+    return it->second.type;
+}
 void loadFromDisk()
 {
-
+//TODO
+    return;
 }
 void saveToDisk()
 {
-
+//TODO
+    return;
 }
 
 //Basics
+bool KVStore::set(const std::string& k, const std::string& v)
+{
+    std::lock_guard lock(mtx);
+
+    auto val = RESPValue{storeType::STR, v};
+    if (dict.contains(k)) dict[k] = val;
+    else dict.insert({k,val});
+    expTable.erase(k);
+    return true;
+}
 std::optional<std::string> KVStore::get(const std::string& k)
 {
     std::lock_guard lock(mtx);
+
     try
     {
         removeExp(k);
         auto found = dict.find(k);
-        if (found != dict.end()) return std::get<std::string>(found->second.value);
-        return std::nullopt;
+        if (found == dict.end()) return std::nullopt;
+        return std::get<std::string>(found->second.value);
     } catch (std::exception& e) {
         std::cerr << "Fail in get: " << e.what() << std::endl;
         return std::nullopt;
     }
 }
-bool KVStore::set(const std::string& k, const std::string& v)
-{
-    std::lock_guard lock(mtx);
-    auto val = RESPValue{valueType::STR, v};
-    try
-    {
-        if (dict.contains(k)) dict[k] = val;
-        else dict.insert({k,val});
-        expTable.erase(k);
-        return true;
-    } catch (std::exception& e) {
-        std::cerr << "Fail in set: " << e.what() << std::endl;
-        return false;
-    }
-}
 int KVStore::del(const std::vector<std::string>& args)
 {
     std::lock_guard lock(mtx);
-    try
+    int deleted = 0;
+    for (const auto& k : args)
     {
-        int deleted = 0;
-        for (const auto& k : args)
-        {
 
-            if (dict.contains(k))
-            {
-                dict.erase(k);
-                deleted++;
-            }
+        if (dict.contains(k))
+        {
+            dict.erase(k);
+            deleted++;
         }
-        return deleted;
-    } catch (std::exception& e) {
-        std::cerr << "Fail in del: " << e.what() << std::endl;
-        return 0;
     }
+    return deleted;
 }
 int KVStore::exists(const std::vector<std::string>& args)
 {
     std::lock_guard<std::mutex> lock(mtx);
-    try
+
+    int exist = 0;
+    for (const auto& k : args)
     {
-        int exist = 0;
-        for (const auto& k : args)
+        removeExp(k);
+        if (dict.contains(k))
         {
-            removeExp(k);
-            if (dict.contains(k))
-            {
-                exist++;
-            }
+            exist++;
         }
-        return exist;
-    } catch (std::exception& e) {
-        std::cerr << "Fail in exists: " << e.what() << std::endl;
-        return 0;
     }
+    return exist;
 }
 std::optional<int> KVStore::incr(const std::string& k)
 {
     std::lock_guard lock(mtx);
+
     removeExp(k);
     auto found = dict.find(k);
     int ret = 0;
     if (found == dict.end())
     {
-        dict[k] = RESPValue{valueType::STR, "1"};
+        dict[k] = RESPValue{storeType::STR, "1"};
         return 1;
     }
 
@@ -135,11 +127,11 @@ std::optional<int> KVStore::dcr(const std::string& k)
     int ret = 0;
     if (found == dict.end())
     {
-        dict[k] = RESPValue{valueType::STR, "-1"};
+        dict[k] = RESPValue{storeType::STR, "-1"};
         return -1;
     }
 
-    try{ ret = std::stoi(std::get<std::string>(found->second.value));}
+    try{ ret = std::stoi(std::get<std::string>(found->second.value)); }
     catch (std::exception& e) {
         std::cerr << "Fail in dcr: " << e.what() << std::endl;
         return std::nullopt;
@@ -152,6 +144,7 @@ std::optional<int> KVStore::dcr(const std::string& k)
 bool KVStore::expire(const std::string& k, int s)
 {
     std::lock_guard lock(mtx);
+
     if (!dict.contains(k)) return false;
     expTable[k] = std::chrono::steady_clock::now() + std::chrono::seconds(s);
     return true;
@@ -159,6 +152,7 @@ bool KVStore::expire(const std::string& k, int s)
 int KVStore::ttl(const std::string& k)
 {
     std::lock_guard lock(mtx);
+
     removeExp(k);
     if (!dict.contains(k)) return -2;
     if (!expTable.contains(k)) return -1;
@@ -168,115 +162,329 @@ int KVStore::ttl(const std::string& k)
 void KVStore::flushall()
 {
     std::lock_guard lock(mtx);
+
     expTable.clear();
     dict.clear();
     //TODO clear file from persistence
 }
 std::vector<std::optional<std::string>> KVStore::mget(const std::vector<std::string>& args)
 {
-    std::vector<std::optional<std::string>> result;
+    std::vector<std::optional<std::string>> ret;
     for (const auto& i : args) {
-        result.push_back(get(i));
+        ret.push_back(get(i));
     }
-    return result;
+    return ret;
 }
 
 
-// int lpush(const std::vector<std::string>& args)
+int KVStore::lpush(const std::vector<std::string>& args)
+{
+    std::lock_guard lock(mtx);
+    const std::string& key = args[0];
+
+    const auto found = dict.find(key);
+    if (found == dict.end())
+    {
+        dict[key] = RESPValue{
+            storeType::LIST,
+            std::deque<std::string>(args.rbegin(), args.rend() - 1)
+            };
+        return static_cast<int>(args.size() - 1);
+    }
+    auto& val = std::get<std::deque<std::string>>(found->second.value);
+
+    for (auto i = args.rbegin(); i != args.rend() - 1; ++i)
+    {
+        val.push_front(*i);
+    }
+    return static_cast<int>(val.size());
+}
+int KVStore::rpush(const std::vector<std::string>& args)
+{
+    std::lock_guard lock(mtx);
+
+    const std::string& key = args[0];
+    const auto found = dict.find(key);
+    if (found == dict.end())
+    {
+        dict[key] = RESPValue{
+            storeType::LIST,
+            std::deque<std::string>(args.begin() + 1, args.end())
+            };
+        return static_cast<int>(args.size() - 1);
+    }
+    auto& val = std::get<std::deque<std::string>>(found->second.value);
+
+    for (auto i = args.begin() + 1; i != args.end(); ++i)
+    {
+        val.push_back(*i);
+    }
+    return static_cast<int>(val.size());
+}
+std::optional<std::string> KVStore::lpop(const std::string& k)
+{
+    std::lock_guard lock(mtx);
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return std::nullopt;
+    auto& val = std::get<std::deque<std::string>>(found->second.value);
+
+    if (val.empty()) return std::nullopt;
+    std::string ret = val.front();
+    val.pop_front();
+    return ret;
+}
+std::optional<std::string> KVStore::rpop(const std::string& k)
+{
+    std::lock_guard lock(mtx);
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return std::nullopt;
+    auto& val = std::get<std::deque<std::string>>(found->second.value);
+
+    if (val.empty()) return std::nullopt;
+    std::string ret = val.back();
+    val.pop_back();
+    return ret;
+}
+std::vector<std::optional<std::string>> KVStore::lrange(const std::string& k, const int& start, const int& stop)
+{
+    std::lock_guard lock(mtx);
+    std::vector<std::optional<std::string>> ret;
+
+    const auto found = dict.find(k);
+    if (found == dict.end())
+    {
+        ret.emplace_back(std::nullopt);
+        return ret;
+    }
+    auto& val = std::get<std::deque<std::string>>(found->second.value);
+
+    int trueStart = start < 0 ? static_cast<int>(val.size()) + start : start;
+    int trueStop = stop < 0 ? static_cast<int>(val.size()) + stop : stop;
+    trueStart = std::max(0, trueStart);
+    trueStop = std::min(static_cast<int>(val.size()) - 1, trueStop);
+
+    if (trueStart > trueStop) return ret;
+
+    for (int i = trueStart; i <= trueStop; ++i) {
+        ret.emplace_back(val[i]);
+    }
+    return ret;
+}
+int KVStore::llen(const std::string& k)
+{
+    std::lock_guard lock(mtx);
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return 0;
+    auto& val = std::get<std::deque<std::string>>(found->second.value);
+
+    return static_cast<int>(val.size());
+}
+std::optional<std::string> KVStore::lindex(const std::string& k, const int& index)
+{
+    std::lock_guard lock(mtx);
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return std::nullopt;
+    auto& val = std::get<std::deque<std::string>>(found->second.value);
+    if (static_cast<int>(val.size()) <= index) return std::nullopt;
+    return val.at(index);
+}
+bool KVStore::lset(const std::string& k, const int& index, const std::string& v)
+{
+    std::lock_guard lock(mtx);
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return false;
+    auto& val = std::get<std::deque<std::string>>(found->second.value);
+
+    if (static_cast<int>(val.size()) <= index || index < 0) return false;
+    val.at(index) = v;
+    return true;
+}
+int KVStore::lrem(const std::string& k, const int& count, const std::string& v)
+{
+    std::lock_guard lock(mtx);
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return 0;
+    auto& val = std::get<std::deque<std::string>>(found->second.value);
+    int removed = 0;
+
+    if (count > 0)
+    {
+        for (auto i = val.begin(); i != val.end() && removed < count;)
+        {
+            if (*i == v)
+            {
+                i = val.erase(i);
+                removed++;
+            }
+            else ++i;
+        }
+    }
+    else if (count < 0)
+    {
+        for (auto i = val.rbegin(); i != val.rend() && removed < -count;)
+        {
+            if (*i == v)
+            {
+                i = std::deque<std::string>::reverse_iterator(val.erase(std::next(i).base())); //gpted this line whole fck
+                removed++;
+            }
+            else ++i;
+        }
+    }
+    else
+    {
+        for (auto it = val.begin(); it != val.end();)
+        {
+            if (*it == v)
+            {
+                it = val.erase(it);
+                removed++;
+            }
+            else ++it;
+        }
+    }
+    return removed;
+}
+
+// int KVStore::sadd(const std::vector<std::string>& args)
+// {
+//      //make key if not exists
+//         std::lock_guard lock(mtx);
+//         const std::string& key = args[0];
+//         const auto found = dict.find(key);
+//         if (found == dict.end())
+//         {
+//             dict[key] = RESPValue{
+//                 storeType::SET,
+//                 std::unordered_set<std::string>(args.begin + 1, args.end())
+//                 };
+//             return static_cast<int>(args.size() - 1);
+//         }
+//         auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+//         int added = 0;
+//
+//
+//         for (auto i = args.begin() + 1; i != args.end(); ++i)
+//         {
+//             if (val.insert(*i).second) //pair second bool if new
+//             {
+//                 added++;
+//             }
+//         }
+//         return added;
+// }
+// int KVStore::srem(const std::vector<std::string>& args)
+// {
+//     std::lock_guard lock(mtx);
+//     const std::string& key = args[0];
+//
+//     const auto found = dict.find(key);
+//     if (found == dict.end()) return 0;
+//
+//     auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+//     int removed = 0;
+//
+//     for (auto i = args.begin() + 1; i != args.end(); ++i)
+//     {
+//         if (val.erase(*i))
+//         {
+//             removed++;
+//         }
+//     }
+//     return removed;
+// }
+// bool KVStore::sismember(const std::string& k, const std::string& v)
+// {
+//     std::lock_guard lock(mtx);
+//
+//     const auto found = dict.find(k);
+//     if (found == dict.end()) return false;
+//     auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+//
+//     return val.contains(v);
+// }
+// std::vector<std::optional<std::string>> KVStore::smembers(const std::string& k)
+// {
+//     std::lock_guard lock(mtx);
+//     std::vector<std::optional<std::string>> ret{};
+//
+//     const auto found = dict.find(k);
+//     if (found == dict.end()) return ret;
+//     auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+//
+//     for (const auto& i : val)
+//     {
+//         ret.emplace_back(i);
+//     }
+//     return ret;
+// }
+// int KVStore::scard(const std::string& k)
+// {
+//     std::lock_guard lock(mtx);
+//
+//     const auto found = dict.find(k);
+//     if (found == dict.end()) return 0;
+//     auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+//
+//     return static_cast<int>(val.size());
+// }
+// std::vector<std::optional<std::string>> KVStore::spop(const std::string& k, const int& count)
+// {
+//     std::lock_guard lock(mtx);
+//     std::vector<std::optional<std::string>> ret{};
+//
+//     const auto found = dict.find(k);
+//     if (found == dict.end() || count == 0) return ret;
+//
+//     auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+//     for (int i = 0; i < count && !val.empty(); ++i)
+//     {
+//         auto it = val.begin();
+//         ret.emplace_back(*it);
+//         val.erase(it);
+//     }
+//     return ret;
+// }
+
+// int KVStore::hset(const std::string& k, const std::string& f, const std::string& v)
 // {
 //
 // }
-// int rpush(const std::vector<std::string>& args)
+// std::optional<std::string> KVStore::hget(const std::string& k, const std::string& f)
 // {
 //
 // }
-// std::optional<std::string> lpop(const std::string& k)
+// int KVStore::hdel(const std::vector<std::string>& args)
 // {
 //
 // }
-// std::optional<std::string> rpop(const std::string& k)
+// bool KVStore::hexists(const std::string& k, const std::string& f)
 // {
 //
 // }
-// std::vector<std::optional<std::string>> lrange(const std::string& k, const int& start, const int& stop)
+// int KVStore::hlen(const std::string& k)
 // {
 //
 // }
-// int llen(const std::string& k)
+// std::vector<std::optional<std::string>> KVStore::hkeys(const std::string& k)
+// {
+//      //empty list on no key
+// }
+// std::vector<std::optional<std::string>> KVStore::hvals(const std::string& k)
+// {
+//      //empty list on no key
+// }
+// bool KVStore::hmset(const std::vector<std::string>& args)
 // {
 //
 // }
-// std::optional<std::string> lindex(const std::string& k, const int& index)
-// {
-//
-// }
-// bool lset(const std::string& k, const int& index, const std::string& v)
-// {
-//
-// }
-// int lrem(const std::string& k, const int& count, const std::string& v)
-// {
-//
-// }
-//
-// int sadd(const std::vector<std::string>& args)
-// {
-//
-// }
-// int srem(const std::vector<std::string>& args)
-// {
-//
-// }
-// bool sismember(const std::string& k, const std::string& v)
-// {
-//
-// }
-// std::vector<std::optional<std::string>> smembers(const std::string& k)
-// {
-//
-// }
-// int scard(const std::string& k)
-// {
-//
-// }
-// std::vector<std::optional<std::string>> spop(const std::string& k, const int& count)
-// {
-//
-// }
-//
-// int hset(const std::string& k, const std::string& f, const std::string& v)
-// {
-//
-// }
-// std::optional<std::string> hget(const std::string& k, const std::string& f)
-// {
-//
-// }
-// int hdel(const std::vector<std::string>& args)
-// {
-//
-// }
-// int hexists(const std::vector<std::string>& args)
-// {
-//
-// }
-// int hlen(const std::string& k)
-// {
-//
-// }
-// std::vector<std::optional<std::string>> hkeys(const std::string& k)
-// {
-//
-// }
-// std::vector<std::optional<std::string>> hvals(const std::string& k)
-// {
-//
-// }
-// bool hmset(const std::vector<std::string>& args)
-// {
-//
-// }
-// std::vector<std::optional<std::string>> hmget(const std::vector<std::string>& args)
+// std::vector<std::optional<std::string>> KVStore::hmget(const std::vector<std::string>& args)
 // {
 //
 // }

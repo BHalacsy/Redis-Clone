@@ -5,6 +5,8 @@
 #include <sstream>
 #include <iostream>
 
+#include "kvstore.hpp"
+
 
 // inline char readByteSock(const int sock)
 // {
@@ -65,4 +67,10 @@ inline std::vector<std::string> splitSpaces(const std::string& line)
 inline std::string argumentError(std::string expected, size_t got)
 {
     return std::format("-ERR command expected {} arguments, got {} instead\r\n", expected, got);
+}
+
+inline std::optional<std::string> checkTypeError(KVStore& kvstore, const std::string& key, storeType expected) {
+    auto type = kvstore.getType(key);
+    if (type && *type != expected) return "-ERR wrong type\r\n";
+    return std::nullopt;
 }

@@ -30,6 +30,7 @@ add_subdirectory(third_party/Catch2)
 
 add_executable(tests
         test/test_basic.cpp
+        test/test_advanced.cpp
         src/kvstore.cpp
         src/parser.cpp
         src/server.cpp
