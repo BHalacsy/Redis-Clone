@@ -9,7 +9,7 @@
 #include <atomic>
 #include <chrono>
 
-#include "parser.hpp"
+#include "../include/parser.hpp"
 
 std::atomic disconnect = false;
 

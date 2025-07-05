@@ -5,6 +5,7 @@
 #include <sstream>
 #include <iostream>
 #include <vector>
+#include <format>
 
 #include "kvstore.hpp"
 

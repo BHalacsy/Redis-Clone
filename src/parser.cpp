@@ -2,7 +2,7 @@
 #include <string>
 #include <format>
 
-#include "parser.hpp"
+#include "../include/parser.hpp"
 #include "util.hpp"
 
 //TODO make sure pipelining works (check for incomplete commands)
