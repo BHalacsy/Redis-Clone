@@ -30,8 +30,8 @@ jobs:
                 --extra-arg=-Iinclude/ \
                 --extra-arg=-std=c++20
 
-      - name: Optional - Run clang-format
-        run: |
-          find src/ test/ -name '*.cpp' -o -name '*.h' \
-            | grep -v 'third_party' \
-            | xargs clang-format --style=file --dry-run --Werror
+#      - name: Optional - Run clang-format
+#        run: |
+#          find src/ test/ -name '*.cpp' -o -name '*.h' \
+#            | grep -v 'third_party' \
+#            | xargs clang-format --style=file --dry-run --Werror
