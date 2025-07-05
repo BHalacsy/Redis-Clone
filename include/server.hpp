@@ -11,7 +11,7 @@ public:
 	explicit Server(int port);
 	~Server();
 
-	[[noreturn]] void start();
+	void start();
 	void handleCommunication(int clientSock, sockaddr_in clientAddress);
 	std::string handleCommand(const std::vector<std::string>& command);
 

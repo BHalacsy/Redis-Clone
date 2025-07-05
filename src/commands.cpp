@@ -48,6 +48,7 @@ Commands strToCmd(const std::string& cmd)
     return Commands::UNKNOWN;
 }
 
+//Basic commands
 std::string handlePING(const std::vector<std::string>& args)
 {
     if (args.size() > 1)
@@ -141,8 +142,7 @@ std::string handleEXPIRE(KVStore& kvstore, const std::vector<std::string>& args)
 
     try
     {
-        int seconds = std::stoi(args[1]);
-        if (kvstore.expire(args[0], seconds)) return ":1\r\n";
+        if (const int seconds = std::stoi(args[1]); kvstore.expire(args[0], seconds)) return ":1\r\n";
         return ":0\r\n";
     }
     catch (const std::exception&) {
@@ -176,7 +176,7 @@ std::string handleMGET(KVStore& kvstore, const std::vector<std::string>& args)
         return argumentError("1 or more", args.size());
     }
 
-    auto vals = kvstore.mget(args);
+    const auto vals = kvstore.mget(args);
     std::string resp = std::format("*{}\r\n", vals.size());
     for (const auto& i : vals)
     {
@@ -186,6 +186,7 @@ std::string handleMGET(KVStore& kvstore, const std::vector<std::string>& args)
     }
     return resp;
 }
+
 //List commands
 std::string handleLPUSH(KVStore& kvstore, const std::vector<std::string>& args)
 {
@@ -244,9 +245,9 @@ std::string handleLRANGE(KVStore& kvstore, const std::vector<std::string>& args)
 
     try
     {
-        int start = std::stoi(args[1]);
-        int stop = std::stoi(args[2]);
-        auto vals = kvstore.lrange(args[0], start, stop);
+        const int start = std::stoi(args[1]);
+        const int stop = std::stoi(args[2]);
+        const auto vals = kvstore.lrange(args[0], start, stop);
         std::string resp = std::format("*{}\r\n", vals.size());
         for (const auto& i : vals)
         {
@@ -326,6 +327,7 @@ std::string handleLREM(KVStore& kvstore, const std::vector<std::string>& args)
         return "-ERR value is not an integer or out of range\r\n";
     }
 }
+
 //Set commands
 std::string handleSADD(KVStore& kvstore, const std::vector<std::string>& args)
 {
@@ -420,6 +422,7 @@ std::string handleSPOP(KVStore& kvstore, const std::vector<std::string>& args)
         return "-ERR value is not an integer or out of range\r\n";
     }
 }
+
 //Hash commands
 std::string handleHSET(KVStore& kvstore, const std::vector<std::string>& args)
 {

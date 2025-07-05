@@ -12,7 +12,6 @@
 #include <commands.hpp>
 
 
-
 Server::Server(const int port) : hostIP("127.0.0.1"), servPort(port), kvstore(true, "dump") //TODO change dump to fitting value
 {
     std::cout << "Server created" << std::endl;
@@ -46,7 +45,7 @@ Server::~Server()
     close(this->sock);
 }
 
-[[noreturn]] void Server::start()
+void Server::start()
 {
     //TODO for connection IMPLEMENT HANDSHAKE and thread poll
     while (true)

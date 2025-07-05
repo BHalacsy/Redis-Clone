@@ -646,7 +646,6 @@ TEST_CASE("HKEYS and HVALS commands", "[hkeys/hvals][command handler][unit]")
 
     SECTION("HKEYS and HVALS expected")
     {
-        //TODO make consistent or embrace randomness also check why hvals not random return
         REQUIRE(handleHKEYS(kv, {"myhash"}) == "*2\r\n$2\r\nf2\r\n$2\r\nf1\r\n");
         REQUIRE(handleHKEYS(kv, {"otherhash"}) == "*0\r\n");
         REQUIRE(handleHVALS(kv, {"myhash"}) == "*2\r\n$2\r\nv2\r\n$2\r\nv1\r\n");

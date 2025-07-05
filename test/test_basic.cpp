@@ -159,7 +159,7 @@ TEST_CASE("Expire method", "[expire][kvstore method][unit]")
     SECTION("Key expires after time")
     {
         kv.expire("b", 1);
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         REQUIRE(kv.get("b") == std::nullopt);
         REQUIRE(kv.ttl("b") == -2);
     }
@@ -184,7 +184,7 @@ TEST_CASE("Ttl method", "[ttl][kvstore method][unit]")
     {
         kv.expire("a", 5);
         int ttl1 = kv.ttl("a");
-        std::this_thread::sleep_for(std::chrono::seconds(2));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         int ttl2 = kv.ttl("a");
         REQUIRE(ttl2 < ttl1);
         REQUIRE(ttl2 > 0);

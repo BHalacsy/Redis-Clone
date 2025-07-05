@@ -20,6 +20,7 @@ enum class Commands
 
 Commands strToCmd(const std::string& cmd);
 
+// Basic commands
 std::string handlePING(const std::vector<std::string>& args);
 std::string handleECHO(const std::vector<std::string>& args);
 std::string handleSET(KVStore& kvstore, const std::vector<std::string>& args);
@@ -33,6 +34,7 @@ std::string handleTTL(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleFLUSHALL(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleMGET(KVStore& kvstore, const std::vector<std::string>& args);
 
+//List commands
 std::string handleLPUSH(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleRPUSH(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleLPOP(KVStore& kvstore, const std::vector<std::string>& args);
@@ -43,6 +45,7 @@ std::string handleLINDEX(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleLSET(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleLREM(KVStore& kvstore, const std::vector<std::string>& args);
 
+//Set commands
 std::string handleSADD(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleSREM(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleSISMEMBER(KVStore& kvstore, const std::vector<std::string>& args);
@@ -50,6 +53,7 @@ std::string handleSMEMBERS(KVStore& kvstore, const std::vector<std::string>& arg
 std::string handleSCARD(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleSPOP(KVStore& kvstore, const std::vector<std::string>& args);
 
+//Hash commands
 std::string handleHSET(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleHGET(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleHDEL(KVStore& kvstore, const std::vector<std::string>& args);

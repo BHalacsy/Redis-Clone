@@ -25,7 +25,7 @@ void KVStore::removeExp(const std::string& k)
 std::optional<storeType> KVStore::getType(const std::string& k) {
     std::lock_guard lock(mtx);
     removeExp(k);
-    auto found = dict.find(k);
+    const auto found = dict.find(k);
     if (found == dict.end()) return std::nullopt;
     return found->second.type;
 }
@@ -176,7 +176,7 @@ std::vector<std::optional<std::string>> KVStore::mget(const std::vector<std::str
     return ret;
 }
 
-
+//Lists
 int KVStore::lpush(const std::vector<std::string>& args)
 {
     std::lock_guard lock(mtx);
@@ -352,6 +352,7 @@ int KVStore::lrem(const std::string& k, const int& count, const std::string& v)
     return removed;
 }
 
+//Sets
 int KVStore::sadd(const std::vector<std::string>& args)
 {
         std::lock_guard lock(mtx);
@@ -415,7 +416,7 @@ std::vector<std::optional<std::string>> KVStore::smembers(const std::string& k)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return ret;
-    auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+    const auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
 
     for (const auto& i : val)
     {
@@ -429,7 +430,7 @@ int KVStore::scard(const std::string& k)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return 0;
-    auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+    const auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
 
     return static_cast<int>(val.size());
 }
@@ -452,6 +453,7 @@ std::vector<std::optional<std::string>> KVStore::spop(const std::string& k, cons
     return ret;
 }
 
+//Hashes
 int KVStore::hset(const std::vector<std::string>& args)
 {
 
@@ -549,6 +551,7 @@ std::vector<std::optional<std::string>> KVStore::hkeys(const std::string& k)
     {
         ret.emplace_back(std::make_optional(i.first));
     }
+    //would use std::sort(ret.begin(), ret.end()) but not needed as redis doesn't do it either (same for hvals)
     return ret;
 }
 std::vector<std::optional<std::string>> KVStore::hvals(const std::string& k)
