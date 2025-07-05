@@ -683,7 +683,7 @@ TEST_CASE("HMGET commands", "[hmget][command handler][unit]")
 TEST_CASE("Persistence", "[persistence][unit]")
 {
 
-    const std::string filename = "test.bin";
+    const std::string filename = "test.rdb";
     {
         KVStore kv(true, filename);
         kv.set("a", "1");
@@ -698,5 +698,4 @@ TEST_CASE("Persistence", "[persistence][unit]")
         REQUIRE(kv.lpop("b") == "1");
         REQUIRE(kv.hget("c", "d") == "1");
     }
-    std::remove(filename.c_str()); //not sure about this
 }
