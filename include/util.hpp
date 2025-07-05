@@ -39,9 +39,9 @@
 // }
 
 
-inline std::string readLine(const char* buffer, size_t len, size_t& offset)
+inline std::string readLine(const char* buffer, const size_t len, size_t& offset)
 {
-    size_t readStart = offset;
+    const size_t readStart = offset;
     while (offset + 1 < len)
     {
         if (buffer[offset] == '\r' && buffer[offset + 1] == '\n') {
@@ -71,7 +71,7 @@ inline std::string argumentError(std::string expected, size_t got)
     return std::format("-ERR command expected {} arguments, got {} instead\r\n", expected, got);
 }
 
-inline std::optional<std::string> checkTypeError(KVStore& kvstore, const std::string& key, storeType expected) {
+inline std::optional<std::string> checkTypeError(KVStore& kvstore, const std::string& key, const storeType expected) {
     auto type = kvstore.getType(key);
     if (type && *type != expected) return "-ERR wrong type\r\n";
     return std::nullopt;

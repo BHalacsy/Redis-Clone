@@ -5,8 +5,8 @@
 
 #include "parser.hpp"
 #include "kvstore.hpp"
-#include "commands.hpp"
-#include "util.hpp"
+#include "../include/commands.hpp"
+#include "../include/util.hpp"
 #include <catch2/catch_test_macros.hpp>
 
 

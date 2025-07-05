@@ -3,9 +3,9 @@
 #include <format>
 #include <iostream>
 
-#include "commands.hpp"
-#include "kvstore.hpp"
-#include "util.hpp"
+#include "../include/commands.hpp"
+#include "../include/kvstore.hpp"
+#include "../include/util.hpp"
 
 Commands strToCmd(const std::string& cmd)
 {
