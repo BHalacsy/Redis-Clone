@@ -9,6 +9,7 @@
 
 Commands strToCmd(const std::string& cmd)
 {
+    if (cmd == "CONFIG") return Commands::CONFIG;
     if (cmd == "PING") return Commands::PING;
     if (cmd == "ECHO") return Commands::ECHO;
     if (cmd == "SET") return Commands::SET;
@@ -49,6 +50,11 @@ Commands strToCmd(const std::string& cmd)
 }
 
 //Basic commands
+std::string handleCONFIG(const std::vector<std::string>& args)
+{
+    if (args[0] == "GET") return "*14\r\n$4\r\nsave\r\n$4\r\n60 0\r\n$10\r\nappendonly\r\n$2\r\nno\r\n$7\r\ntimeout\r\n$1\r\n0\r\n$9\r\ndatabases\r\n$1\r\n1\r\n$11\r\nrequirepass\r\n$0\r\n\r\n$9\r\nmaxmemory\r\n$1\r\n0\r\n$3\r\ndir\r\n$5\r\n./data\r\n";
+
+}
 std::string handlePING(const std::vector<std::string>& args)
 {
     if (args.size() > 1)

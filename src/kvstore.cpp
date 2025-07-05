@@ -79,8 +79,6 @@ void KVStore::saveToDisk()
         std::filesystem::create_directories(std::filesystem::path(persistenceFile).parent_path());
         std::ofstream writeToFile(persistenceFile, std::ios::binary | std::ios::trunc);
         std::cout << "Saving to file: " << persistenceFile << std::endl;
-        //TODO change to overwrite
-        //TODO save every couple seconds and or operations
         boost::archive::binary_oarchive binFile(writeToFile);
         binFile << dict;
         writeToFile.close();

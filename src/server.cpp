@@ -15,7 +15,7 @@
 #include "commands.hpp"
 
 
-Server::Server() : pool(POOL_SIZE), kvstore(true, "dump.rdb")
+Server::Server() : pool(POOL_SIZE), kvstore(true)
 {
     std::cout << "Server launch!" << std::endl;
     this->sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -49,12 +49,12 @@ Server::~Server()
 
 void Server::start()
 {
-    //TODO for connection IMPLEMENT HANDSHAKE and thread pool
+    //TODO for connection implement fine grain thread locks for true concurrency
     std::thread snapShotPerMinute([this]
     {
         while (running)
         {
-            std::this_thread::sleep_for(std::chrono::seconds(60));
+            std::this_thread::sleep_for(std::chrono::seconds(SNAP_TIMER));
             kvstore.saveToDisk();
         }
     });
@@ -71,6 +71,7 @@ void Server::start()
             handleCommunication(connectionSock, connectionAddress);
         });
     }
+    snapShotPerMinute.join();
 }
 
 void Server::stop()
@@ -118,6 +119,7 @@ std::string Server::handleCommand(const std::vector<std::string>& command) //may
 
     switch (strToCmd(command[0]))
     {
+        case Commands::CONFIG: return handleCONFIG(arguments);
         case Commands::PING: return handlePING(arguments);
         case Commands::ECHO: return handleECHO(arguments);
         case Commands::SET: return handleSET(kvstore, arguments);
@@ -154,7 +156,7 @@ std::string Server::handleCommand(const std::vector<std::string>& command) //may
         case Commands::HVALS: return handleHVALS(kvstore, arguments);
         case Commands::HMGET: return handleHMGET(kvstore, arguments);
         default:
-            std::cerr << "Command not handled" << std::endl;
+            std::cerr << "Command not handled: " << command[0] << std::endl;
             return std::format("-ERR unknown command '{}'", command[0]);//send error
     }
 }

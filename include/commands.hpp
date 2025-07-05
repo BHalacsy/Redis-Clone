@@ -7,6 +7,7 @@
 
 enum class Commands
 {
+    CONFIG,
     PING, ECHO,
     SET, GET, DEL, EXISTS,
     INCR, DCR, EXPIRE, TTL, FLUSHALL, MGET,
@@ -20,6 +21,7 @@ enum class Commands
 auto strToCmd(const std::string& cmd) -> Commands;
 
 // Basic commands
+std::string handleCONFIG(const std::vector<std::string>& args);
 std::string handlePING(const std::vector<std::string>& args);
 std::string handleECHO(const std::vector<std::string>& args);
 std::string handleSET(KVStore& kvstore, const std::vector<std::string>& args);

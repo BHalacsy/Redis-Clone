@@ -7,11 +7,12 @@
 #include <mutex>
 #include <vector>
 
+#include "config.h"
 #include "RESPtype.hpp"
 
 class KVStore {
 public:
-    explicit KVStore(bool persist, const std::string& fileName = "dump.rdb");
+    explicit KVStore(bool persist, const std::string& fileName = SAVEFILE_PATH);
     ~KVStore();
 
     void removeExp(const std::string& k);
@@ -64,5 +65,7 @@ private:
     std::unordered_map<std::string,std::chrono::steady_clock::time_point> expTable; //expiry table
     bool persistenceToggle; //toggle to not persist when testing
     std::string persistenceFile; //persistence file path
+    int opCount = 0;
+
     std::mutex mtx; //thread lock
 };
