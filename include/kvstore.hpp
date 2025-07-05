@@ -11,7 +11,7 @@
 
 class KVStore {
 public:
-    KVStore(bool persist, const std::string&  fileName = "dump");
+    explicit KVStore(bool persist, const std::string& fileName = "dump.rdb");
     ~KVStore();
 
     void removeExp(const std::string& k);
@@ -60,9 +60,9 @@ public:
 
 
 private:
-    std::unordered_map<std::string,RESPValue> dict;
-    std::unordered_map<std::string,std::chrono::steady_clock::time_point> expTable;
-    bool persistenceToggle;
-    std::string persistenceFile;
-    std::mutex mtx;
+    std::unordered_map<std::string,RESPValue> dict; //main store
+    std::unordered_map<std::string,std::chrono::steady_clock::time_point> expTable; //expiry table
+    bool persistenceToggle; //toggle to not persist when testing
+    std::string persistenceFile; //persistence file path
+    std::mutex mtx; //thread lock
 };

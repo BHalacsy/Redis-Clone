@@ -2,9 +2,12 @@
 #include <iostream>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <boost/asio/thread_pool.hpp>
+#include <boost/asio/post.hpp>
 #include <thread>
 #include <format>
 
+#include "config.h"
 #include "server.hpp"
 #include "parser.hpp"
 #include "kvstore.hpp"
@@ -12,9 +15,9 @@
 #include "commands.hpp"
 
 
-Server::Server(const int port) : servPort(port), running(true), hostIP("127.0.0.1"), kvstore(true, "dump.rdb") //TODO change dump to fitting value
+Server::Server() : pool(POOL_SIZE), kvstore(true, "dump.rdb")
 {
-    std::cout << "Server created" << std::endl;
+    std::cout << "Server launch!" << std::endl;
     this->sock = socket(AF_INET, SOCK_STREAM, 0);
 
     sockaddr_in sockAddress{};
@@ -26,9 +29,9 @@ Server::Server(const int port) : servPort(port), running(true), hostIP("127.0.0.
     {
         if (bind(this->sock, reinterpret_cast<sockaddr*>(&sockAddress), sizeof(sockAddress)) != 0)
         {
-            throw std::runtime_error("server bind failed");
+            throw std::runtime_error("Server bind failed");
         }
-        if (listen(this->sock, 5) != 0) { throw std::runtime_error("server listen failed"); }
+        if (listen(this->sock, 5) != 0) { throw std::runtime_error("Server listen failed"); }
         std::cout << "Listening on: " << hostIP << " : " << servPort << std::endl;
     }
     catch (const std::exception& e)
@@ -39,16 +42,23 @@ Server::Server(const int port) : servPort(port), running(true), hostIP("127.0.0.
 
 Server::~Server()
 {
-    //deconstruction here
-    //disconnect
     std::cout << "Server shutting down..." << std::endl;
-    kvstore.saveToDisk();
+    pool.join();
     close(this->sock);
 }
 
-[[noreturn]] void Server::start()
+void Server::start()
 {
     //TODO for connection IMPLEMENT HANDSHAKE and thread pool
+    std::thread snapShotPerMinute([this]
+    {
+        while (running)
+        {
+            std::this_thread::sleep_for(std::chrono::seconds(60));
+            kvstore.saveToDisk();
+        }
+    });
+
     while (running)
     {
         sockaddr_in connectionAddress{};
@@ -56,10 +66,11 @@ Server::~Server()
 
         std::cout << "Waiting for new connections..." << std::endl;
         int connectionSock = accept(this->sock, reinterpret_cast<sockaddr*>(&connectionAddress), &addLen);
-        std::thread worker(&Server::handleCommunication, this, connectionSock, connectionAddress);
-        worker.detach();
+        boost::asio::post(pool, [this, connectionSock, connectionAddress]()
+        {
+            handleCommunication(connectionSock, connectionAddress);
+        });
     }
-    std::cout << "Server shutdown." << std::endl;
 }
 
 void Server::stop()
@@ -76,12 +87,13 @@ void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress
     {
         try
         {
+            //receive and parse
             const ssize_t bytesRead = recv(clientSock, &buffer, sizeof(buffer), 0);
             if (bytesRead <= 0) break;
             size_t offset = 0;
             std::vector<std::string> command = parseRESP(buffer, bytesRead, offset);
 
-            //handle and return
+            //handle and send
             std::string resp = handleCommand(command);
             send(clientSock, resp.c_str(), resp.size(), 0);
 

@@ -9,11 +9,9 @@
 #include <boost/variant/variant.hpp>
 #include <boost/serialization/unordered_map.hpp>
 #include <boost/serialization/unordered_set.hpp>
-#include <boost/variant2/variant.hpp>
 #include <boost/serialization/deque.hpp>
 #include <boost/serialization/string.hpp>
 
-//for when implementing all various datatypes, maybe have vector<RESPvalue>
 enum class storeType {STR, LIST, SET, HASH};
 
 struct RESPValue
@@ -22,17 +20,17 @@ struct RESPValue
     boost::variant<std::string, std::deque<std::string>,std::unordered_set<std::string>,std::unordered_map<std::string, std::string>> value;
 
 private:
-    //RESP value serialization
+    //RESPvalue custom serialization
     friend class boost::serialization::access;
-    template<class Archive> void serialize(Archive& ar, const unsigned int version)
+    template<class Archive> void serialize(Archive& ar, const unsigned version)
     {
         ar & type;
         ar & value;
     }
 };
 
-// Enum serialization
-template<class Archive> void serialize(Archive& ar, storeType& g, const unsigned int version)
+//storeType Enum class serialization
+template<class Archive> void serialize(Archive& ar, storeType& t, const unsigned version)
 {
-    ar & reinterpret_cast<int&>(g);
+    ar & reinterpret_cast<int&>(t);
 }
