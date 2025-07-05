@@ -5,11 +5,11 @@
 #include <thread>
 #include <format>
 
-#include "../include/server.hpp"
-#include "../include/parser.hpp"
-#include "../include/kvstore.hpp"
-#include "../include/util.hpp"
-#include "../include/commands.hpp"
+#include "server.hpp"
+#include "parser.hpp"
+#include "kvstore.hpp"
+#include "util.hpp"
+#include "commands.hpp"
 
 
 Server::Server(const int port) : hostIP("127.0.0.1"), servPort(port), kvstore(true, "dump") //TODO change dump to fitting value

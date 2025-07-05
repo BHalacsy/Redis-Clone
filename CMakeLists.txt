@@ -8,7 +8,7 @@ include(CTest)
 enable_testing()
 
 # Include your include and src dirs
-
+include_directories(${CMAKE_SOURCE_DIR}/include)
 
 add_executable(redis_server
         src/main.cpp
@@ -23,9 +23,6 @@ add_executable(redis_client
         src/parser.cpp
 )
 
-target_include_directories(redis_server PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_include_directories(redis_client PRIVATE ${CMAKE_SOURCE_DIR}/include)
-
 add_subdirectory(third_party/Catch2)
 
 add_executable(tests
@@ -36,8 +33,6 @@ add_executable(tests
         src/server.cpp
         src/commands.cpp
 )
-
-target_include_directories(tests PRIVATE ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
 
 # Automatically discover tests using Catch2's CTest integration
