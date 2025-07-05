@@ -43,7 +43,6 @@ Commands strToCmd(const std::string& cmd)
     if (cmd == "HLEN") return Commands::HLEN;
     if (cmd == "HKEYS") return Commands::HKEYS;
     if (cmd == "HVALS") return Commands::HVALS;
-    if (cmd == "HMSET") return Commands::HMSET;
     if (cmd == "HMGET") return Commands::HMGET;
 
     return Commands::UNKNOWN;
@@ -303,7 +302,7 @@ std::string handleLSET(KVStore& kvstore, const std::vector<std::string>& args)
     try
     {
         const int index = std::stoi(args[1]);
-        return kvstore.lset(args[0], index, args[2]) ? "+OK\r\n" : "-ERR value is not an integer or out of range\r\n";  //fix ERR to make sense
+        return kvstore.lset(args[0], index, args[2]) ? "+OK\r\n" : "-ERR no such key or value out of range\r\n";  //fix ERR to make sense
     }
     catch (const std::exception&) {
         return "-ERR value is not an integer or out of range\r\n";
@@ -328,215 +327,215 @@ std::string handleLREM(KVStore& kvstore, const std::vector<std::string>& args)
     }
 }
 //Set commands
-// std::string handleSADD(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() < 2)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("2 or more", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
-//
-//     return std::format(":{}\r\n", kvstore.sadd(args));
-// }
-// std::string handleSREM(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() < 2)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("2 or more", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
-//
-//     return std::format(":{}]\r\n", kvstore.srem(args));
-// }
-// std::string handleSISMEMBER(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() != 2)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("2", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
-//
-//     return kvstore.sismember(args[0], args[1]) ? ":1\r\n" : ":0\r\n";
-// }
-// std::string handleSMEMBERS(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() != 1)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("1", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
-//
-//     const auto vals = kvstore.smembers(args[0]);
-//     std::string resp = std::format("*{}\r\n", vals.size());
-//     for (const auto& i : vals)
-//     {
-//         if (i == std::nullopt) resp += std::format("$-1\r\n");
-//         else resp += std::format("${}\r\n{}\r\n", i->length(), *i);
-//     }
-//     return resp;
-// }
-// std::string handleSCARD(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() != 1)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("1", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
-//
-//     return std::format(":{}\r\n", kvstore.scard(args[0]));
-// }
-// std::string handleSPOP(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() != 1 || args.size() != 2)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("1 or 2", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
-//
-//     try
-//     {
-//         int count = std::stoi(args[1]);
-//         auto vals = kvstore.spop(args[0], count);
-//         std::string resp = std::format("*{}\r\n", vals.size());
-//         for (const auto& i : vals)
-//         {
-//             if (i == std::nullopt) resp += std::format("$-1\r\n");
-//             else resp += std::format("${}\r\n{}\r\n", i->length(), *i);
-//         }
-//         return resp;
-//     }
-//     catch (const std::exception&) {
-//         return "-ERR value is not an integer or out of range\r\n";
-//     }
-// }
-// //Hash commands
-// std::string handleHSET(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() < 3)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("3 or more", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
-//
-//     return std::format(":{}\r\n", kvstore.hset(args[0], args[1], args[2]));
-// }
-// std::string handleHGET(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() != 2)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("2", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
-//
-//     auto val = kvstore.hget(args[0], args[1]);
-//     return val ? std::format("${}\r\n{}\r\n", val->length(), val.value()) : "$-1\r\n";
-// }
-// std::string handleHDEL(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() < 2)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("2 or more", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
-//
-//     return std::format(":{}\r\n", kvstore.hdel(args));
-// }
-// std::string handleHEXISTS(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() != 2)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("2", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
-//
-//     return kvstore.hexists(args[0], args[1]) ? ":1\r\n" : ":0\r\n";
-// }
-// std::string handleHLEN(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() != 1)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("1", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
-//
-//     return std::format(":{}\r\n", kvstore.hlen(args[0]));
-// }
-// std::string handleHKEYS(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() != 1)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("1", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
-//
-//     const auto vals = kvstore.hkeys(args[0]);
-//     std::string resp = std::format("*{}\r\n", vals.size());
-//     for (const auto& i : vals)
-//     {
-//         if (i == std::nullopt) resp += std::format("$-1\r\n");
-//         else resp += std::format("${}\r\n{}\r\n", i->length(), *i);
-//     }
-//     return resp;
-// }
-// std::string handleHVALS(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() != 1)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("1", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
-//
-//     const auto vals = kvstore.hvals(args[0]);
-//     std::string resp = std::format("*{}\r\n", vals.size());
-//     for (const auto& i : vals)
-//     {
-//         if (i == std::nullopt) resp += std::format("$-1\r\n");
-//         else resp += std::format("${}\r\n{}\r\n", i->length(), *i);
-//     }
-//     return resp;
-// }
-// std::string handleHMSET(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() != 1)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return "-ERR not even field-value pairs\r\n";
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
-//
-//     return kvstore.hmset(args) ? ":1\r\n" : ":0\r\n";
-// }
-// std::string handleHMGET(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() < 2)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("2 or more", args.size());
-//     }
-//     if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
-//
-//     const auto vals = kvstore.hmget(args);
-//     std::string resp = std::format("*{}\r\n", vals.size());
-//     for (const auto& i : vals)
-//     {
-//         if (i == std::nullopt) resp += std::format("$-1\r\n");
-//         else resp += std::format("${}\r\n{}\r\n", i->length(), *i);
-//     }
-//     return resp;
-// }
+std::string handleSADD(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() < 2)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("2 or more", args.size());
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
+
+    return std::format(":{}\r\n", kvstore.sadd(args));
+}
+std::string handleSREM(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() < 2)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("2 or more", args.size());
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
+
+    return std::format(":{}\r\n", kvstore.srem(args));
+}
+std::string handleSISMEMBER(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() != 2)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("2", args.size());
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
+
+    return kvstore.sismember(args[0], args[1]) ? ":1\r\n" : ":0\r\n";
+}
+std::string handleSMEMBERS(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() != 1)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("1", args.size());
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
+
+    const auto vals = kvstore.smembers(args[0]);
+    std::string resp = std::format("*{}\r\n", vals.size());
+    for (const auto& i : vals)
+    {
+        if (i == std::nullopt) resp += std::format("$-1\r\n");
+        else resp += std::format("${}\r\n{}\r\n", i->length(), *i);
+    }
+    return resp;
+}
+std::string handleSCARD(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() != 1)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("1", args.size());
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
+
+    return std::format(":{}\r\n", kvstore.scard(args[0]));
+}
+std::string handleSPOP(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (!(args.size() == 1 || args.size() == 2))
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("1 or 2", args.size());
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
+
+    try
+    {
+        int count;
+        std::string resp = "";
+        if (args.size() == 2) count = std::stoi(args[1]);
+        else count = 1;
+
+        const auto vals = kvstore.spop(args[0], count);
+        if (vals.empty()) return "$-1\r\n";
+
+        if (vals.size() > 1) resp += std::format("*{}\r\n", vals.size());
+        for (const auto& i : vals)
+        {
+            if (i == std::nullopt) resp += std::format("$-1\r\n");
+            else resp += std::format("${}\r\n{}\r\n", i->length(), *i);
+        }
+        return resp;
+    }
+    catch (const std::exception&) {
+        return "-ERR value is not an integer or out of range\r\n";
+    }
+}
+//Hash commands
+std::string handleHSET(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() < 3)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("3 or more", args.size());
+    }
+    if (args.size() % 2 == 0)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return "-ERR expected pair of fields and values";
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+
+    return std::format(":{}\r\n", kvstore.hset(args));
+}
+std::string handleHGET(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() != 2)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("2", args.size());
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+
+    auto val = kvstore.hget(args[0], args[1]);
+    return val ? std::format("${}\r\n{}\r\n", val->length(), val.value()) : "$-1\r\n";
+}
+std::string handleHDEL(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() < 2)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("2 or more", args.size());
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+
+    return std::format(":{}\r\n", kvstore.hdel(args));
+}
+std::string handleHEXISTS(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() != 2)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("2", args.size());
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+
+    return kvstore.hexists(args[0], args[1]) ? ":1\r\n" : ":0\r\n";
+}
+std::string handleHLEN(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() != 1)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("1", args.size());
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+
+    return std::format(":{}\r\n", kvstore.hlen(args[0]));
+}
+std::string handleHKEYS(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() != 1)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("1", args.size());
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+
+    const auto vals = kvstore.hkeys(args[0]);
+    std::string resp = std::format("*{}\r\n", vals.size());
+    for (const auto& i : vals)
+    {
+        if (i == std::nullopt) resp += std::format("$-1\r\n");
+        else resp += std::format("${}\r\n{}\r\n", i->length(), *i);
+    }
+    return resp;
+}
+std::string handleHVALS(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() != 1)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("1", args.size());
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+
+    const auto vals = kvstore.hvals(args[0]);
+    std::string resp = std::format("*{}\r\n", vals.size());
+    for (const auto& i : vals)
+    {
+        if (i == std::nullopt) resp += std::format("$-1\r\n");
+        else resp += std::format("${}\r\n{}\r\n", i->length(), *i);
+    }
+    return resp;
+}
+std::string handleHMGET(KVStore& kvstore, const std::vector<std::string>& args)
+{
+    if (args.size() < 2)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("2 or more", args.size());
+    }
+    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+
+    const auto vals = kvstore.hmget(args);
+    std::string resp = std::format("*{}\r\n", vals.size());
+    for (const auto& i : vals)
+    {
+        if (i == std::nullopt) resp += std::format("$-1\r\n");
+        else resp += std::format("${}\r\n{}\r\n", i->length(), *i);
+    }
+    return resp;
+}
 
 //TODO pub/sub
 //TODO advanced data structures and commands (lists,sets,hashs,sortedset)

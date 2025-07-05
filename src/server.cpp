@@ -120,21 +120,20 @@ std::string Server::handleCommand(const std::vector<std::string>& command) //may
         case Commands::LINDEX: return handleLINDEX(kvstore, arguments);
         case Commands::LSET: return handleLSET(kvstore, arguments);
         case Commands::LREM: return handleLREM(kvstore, arguments);
-        // case Commands::SADD: return handleSADD(kvstore, arguments);
-        // case Commands::SREM: return handleSREM(kvstore, arguments);
-        // case Commands::SISMEMBER: return handleSISMEMBER(kvstore, arguments);
-        // case Commands::SMEMBERS: return handleSMEMBERS(kvstore, arguments);
-        // case Commands::SCARD: return handleSCARD(kvstore, arguments);
-        // case Commands::SPOP: return handleSPOP(kvstore, arguments);
-        // case Commands::HSET: return handleHSET(kvstore, arguments);
-        // case Commands::HGET: return handleHGET(kvstore, arguments);
-        // case Commands::HDEL: return handleHDEL(kvstore, arguments);
-        // case Commands::HEXISTS: return handleHEXISTS(kvstore, arguments);
-        // case Commands::HLEN: return handleHLEN(kvstore, arguments);
-        // case Commands::HKEYS: return handleHKEYS(kvstore, arguments);
-        // case Commands::HVALS: return handleHVALS(kvstore, arguments);
-        // case Commands::HMSET: return handleHMSET(kvstore, arguments);
-        // case Commands::HMGET: return handleHMGET(kvstore, arguments);
+        case Commands::SADD: return handleSADD(kvstore, arguments);
+        case Commands::SREM: return handleSREM(kvstore, arguments);
+        case Commands::SISMEMBER: return handleSISMEMBER(kvstore, arguments);
+        case Commands::SMEMBERS: return handleSMEMBERS(kvstore, arguments);
+        case Commands::SCARD: return handleSCARD(kvstore, arguments);
+        case Commands::SPOP: return handleSPOP(kvstore, arguments);
+        case Commands::HSET: return handleHSET(kvstore, arguments);
+        case Commands::HGET: return handleHGET(kvstore, arguments);
+        case Commands::HDEL: return handleHDEL(kvstore, arguments);
+        case Commands::HEXISTS: return handleHEXISTS(kvstore, arguments);
+        case Commands::HLEN: return handleHLEN(kvstore, arguments);
+        case Commands::HKEYS: return handleHKEYS(kvstore, arguments);
+        case Commands::HVALS: return handleHVALS(kvstore, arguments);
+        case Commands::HMGET: return handleHMGET(kvstore, arguments);
         default:
             std::cerr << "Command not handled" << std::endl;
             return std::format("-ERR unknown command '{}'", command[0]);//send error

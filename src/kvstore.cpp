@@ -16,7 +16,7 @@ KVStore::~KVStore()
 //Helpers
 void KVStore::removeExp(const std::string& k)
 {
-    if (auto found = expTable.find(k); found != expTable.end() && std::chrono::steady_clock::now() >= found->second)
+    if (const auto found = expTable.find(k); found != expTable.end() && std::chrono::steady_clock::now() >= found->second)
     {
         dict.erase(k);
         expTable.erase(found);
@@ -25,9 +25,9 @@ void KVStore::removeExp(const std::string& k)
 std::optional<storeType> KVStore::getType(const std::string& k) {
     std::lock_guard lock(mtx);
     removeExp(k);
-    auto it = dict.find(k);
-    if (it == dict.end()) return std::nullopt;
-    return it->second.type;
+    auto found = dict.find(k);
+    if (found == dict.end()) return std::nullopt;
+    return found->second.type;
 }
 void loadFromDisk()
 {
@@ -58,7 +58,7 @@ std::optional<std::string> KVStore::get(const std::string& k)
     try
     {
         removeExp(k);
-        auto found = dict.find(k);
+        const auto found = dict.find(k);
         if (found == dict.end()) return std::nullopt;
         return std::get<std::string>(found->second.value);
     } catch (std::exception& e) {
@@ -101,7 +101,7 @@ std::optional<int> KVStore::incr(const std::string& k)
     std::lock_guard lock(mtx);
 
     removeExp(k);
-    auto found = dict.find(k);
+    const auto found = dict.find(k);
     int ret = 0;
     if (found == dict.end())
     {
@@ -123,7 +123,7 @@ std::optional<int> KVStore::dcr(const std::string& k)
 {
     std::lock_guard lock(mtx);
     removeExp(k);
-    auto found = dict.find(k);
+    const auto found = dict.find(k);
     int ret = 0;
     if (found == dict.end())
     {
@@ -141,7 +141,7 @@ std::optional<int> KVStore::dcr(const std::string& k)
     found->second.value = std::string(std::to_string(ret));
     return ret;
 }
-bool KVStore::expire(const std::string& k, int s)
+bool KVStore::expire(const std::string& k, const int s)
 {
     std::lock_guard lock(mtx);
 
@@ -156,7 +156,7 @@ int KVStore::ttl(const std::string& k)
     removeExp(k);
     if (!dict.contains(k)) return -2;
     if (!expTable.contains(k)) return -1;
-    auto duration = expTable.at(k) - std::chrono::steady_clock::now();
+    const auto duration = expTable.at(k) - std::chrono::steady_clock::now();
     return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(duration).count());
 }
 void KVStore::flushall()
@@ -278,7 +278,7 @@ int KVStore::llen(const std::string& k)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return 0;
-    auto& val = std::get<std::deque<std::string>>(found->second.value);
+    const auto& val = std::get<std::deque<std::string>>(found->second.value);
 
     return static_cast<int>(val.size());
 }
@@ -352,140 +352,242 @@ int KVStore::lrem(const std::string& k, const int& count, const std::string& v)
     return removed;
 }
 
-// int KVStore::sadd(const std::vector<std::string>& args)
-// {
-//      //make key if not exists
-//         std::lock_guard lock(mtx);
-//         const std::string& key = args[0];
-//         const auto found = dict.find(key);
-//         if (found == dict.end())
-//         {
-//             dict[key] = RESPValue{
-//                 storeType::SET,
-//                 std::unordered_set<std::string>(args.begin + 1, args.end())
-//                 };
-//             return static_cast<int>(args.size() - 1);
-//         }
-//         auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
-//         int added = 0;
-//
-//
-//         for (auto i = args.begin() + 1; i != args.end(); ++i)
-//         {
-//             if (val.insert(*i).second) //pair second bool if new
-//             {
-//                 added++;
-//             }
-//         }
-//         return added;
-// }
-// int KVStore::srem(const std::vector<std::string>& args)
-// {
-//     std::lock_guard lock(mtx);
-//     const std::string& key = args[0];
-//
-//     const auto found = dict.find(key);
-//     if (found == dict.end()) return 0;
-//
-//     auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
-//     int removed = 0;
-//
-//     for (auto i = args.begin() + 1; i != args.end(); ++i)
-//     {
-//         if (val.erase(*i))
-//         {
-//             removed++;
-//         }
-//     }
-//     return removed;
-// }
-// bool KVStore::sismember(const std::string& k, const std::string& v)
-// {
-//     std::lock_guard lock(mtx);
-//
-//     const auto found = dict.find(k);
-//     if (found == dict.end()) return false;
-//     auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
-//
-//     return val.contains(v);
-// }
-// std::vector<std::optional<std::string>> KVStore::smembers(const std::string& k)
-// {
-//     std::lock_guard lock(mtx);
-//     std::vector<std::optional<std::string>> ret{};
-//
-//     const auto found = dict.find(k);
-//     if (found == dict.end()) return ret;
-//     auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
-//
-//     for (const auto& i : val)
-//     {
-//         ret.emplace_back(i);
-//     }
-//     return ret;
-// }
-// int KVStore::scard(const std::string& k)
-// {
-//     std::lock_guard lock(mtx);
-//
-//     const auto found = dict.find(k);
-//     if (found == dict.end()) return 0;
-//     auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
-//
-//     return static_cast<int>(val.size());
-// }
-// std::vector<std::optional<std::string>> KVStore::spop(const std::string& k, const int& count)
-// {
-//     std::lock_guard lock(mtx);
-//     std::vector<std::optional<std::string>> ret{};
-//
-//     const auto found = dict.find(k);
-//     if (found == dict.end() || count == 0) return ret;
-//
-//     auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
-//     for (int i = 0; i < count && !val.empty(); ++i)
-//     {
-//         auto it = val.begin();
-//         ret.emplace_back(*it);
-//         val.erase(it);
-//     }
-//     return ret;
-// }
+int KVStore::sadd(const std::vector<std::string>& args)
+{
+        std::lock_guard lock(mtx);
+        const std::string& key = args[0];
+        const auto found = dict.find(key);
+        if (found == dict.end())
+        {
+            dict[key] = RESPValue{
+                storeType::SET,
+                std::unordered_set<std::string>(args.begin() + 1, args.end())
+                };
+            return static_cast<int>(args.size() - 1);
+        }
+        auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+        int added = 0;
 
-// int KVStore::hset(const std::string& k, const std::string& f, const std::string& v)
-// {
-//
-// }
-// std::optional<std::string> KVStore::hget(const std::string& k, const std::string& f)
-// {
-//
-// }
-// int KVStore::hdel(const std::vector<std::string>& args)
-// {
-//
-// }
-// bool KVStore::hexists(const std::string& k, const std::string& f)
-// {
-//
-// }
-// int KVStore::hlen(const std::string& k)
-// {
-//
-// }
-// std::vector<std::optional<std::string>> KVStore::hkeys(const std::string& k)
-// {
-//      //empty list on no key
-// }
-// std::vector<std::optional<std::string>> KVStore::hvals(const std::string& k)
-// {
-//      //empty list on no key
-// }
-// bool KVStore::hmset(const std::vector<std::string>& args)
-// {
-//
-// }
-// std::vector<std::optional<std::string>> KVStore::hmget(const std::vector<std::string>& args)
-// {
-//
-// }
+
+        for (auto i = args.begin() + 1; i != args.end(); ++i)
+        {
+            if (val.insert(*i).second) //pair second bool if new
+            {
+                added++;
+            }
+        }
+        return added;
+}
+int KVStore::srem(const std::vector<std::string>& args)
+{
+    std::lock_guard lock(mtx);
+    const std::string& key = args[0];
+
+    const auto found = dict.find(key);
+    if (found == dict.end()) return 0;
+
+    auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+    int removed = 0;
+
+    for (auto i = args.begin() + 1; i != args.end(); ++i)
+    {
+        if (val.erase(*i))
+        {
+            removed++;
+        }
+    }
+    return removed;
+}
+bool KVStore::sismember(const std::string& k, const std::string& v)
+{
+    std::lock_guard lock(mtx);
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return false;
+    const auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+
+    return val.contains(v);
+}
+std::vector<std::optional<std::string>> KVStore::smembers(const std::string& k)
+{
+    std::lock_guard lock(mtx);
+    std::vector<std::optional<std::string>> ret{};
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return ret;
+    auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+
+    for (const auto& i : val)
+    {
+        ret.emplace_back(i);
+    }
+    return ret;
+}
+int KVStore::scard(const std::string& k)
+{
+    std::lock_guard lock(mtx);
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return 0;
+    auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+
+    return static_cast<int>(val.size());
+}
+std::vector<std::optional<std::string>> KVStore::spop(const std::string& k, const int& count)
+{
+    std::lock_guard lock(mtx);
+    std::vector<std::optional<std::string>> ret{};
+
+    const auto found = dict.find(k);
+    if (found == dict.end() || count == 0) return ret;
+
+    auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+    for (int i = 0; i < count && !val.empty(); ++i)
+    {
+        //TODO make randomized pop
+        auto it = val.begin();
+        ret.emplace_back(*it);
+        val.erase(it);
+    }
+    return ret;
+}
+
+int KVStore::hset(const std::vector<std::string>& args)
+{
+
+    std::lock_guard lock(mtx);
+    const std::string& key = args[0];
+    int added = 0;
+
+    if (args.size() < 3 || args.size() % 2 == 0) return false;
+
+    const auto found = dict.find(key);
+    if (found == dict.end())
+    {
+        std::unordered_map<std::string, std::string> newMap;
+        for (auto i = 1; i < args.size(); i += 2)
+        {
+            newMap[args[i]] = args[i + 1];
+            added++;
+        }
+        dict[key] = RESPValue{storeType::HASH, newMap};
+        return added;
+    }
+    auto& val = std::get<std::unordered_map<std::string, std::string>>(found->second.value);
+
+    for (auto i = 1; i < args.size(); i += 2)
+    {
+        if (!val.contains(args[i])) added++;
+        val[args[i]] = args[i + 1];
+    }
+    return added;
+}
+std::optional<std::string> KVStore::hget(const std::string& k, const std::string& f)
+{
+    std::lock_guard lock(mtx);
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return std::nullopt;
+    auto& val = std::get<std::unordered_map<std::string,std::string>>(found->second.value);
+
+    const auto foundField = val.find(f);
+    if (foundField == val.end()) return std::nullopt;
+
+    return foundField->second;
+}
+int KVStore::hdel(const std::vector<std::string>& args)
+{
+    std::lock_guard lock(mtx);
+    const std::string& key = args[0];
+
+    const auto found = dict.find(key);
+    if (found == dict.end()) return 0;
+    auto& val = std::get<std::unordered_map<std::string,std::string>>(found->second.value);
+    int removed = 0;
+
+    for (auto it = args.begin() + 1; it != args.end(); ++it)
+    {
+        if (val.erase(*it) > 0)
+        {
+            removed++;
+        }
+    }
+    return removed;
+}
+bool KVStore::hexists(const std::string& k, const std::string& f)
+{
+    std::lock_guard lock(mtx);
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return false;
+    auto& val = std::get<std::unordered_map<std::string,std::string>>(found->second.value);
+
+    if (const auto foundField = val.find(f); foundField == val.end()) return false;
+
+    return true;
+}
+int KVStore::hlen(const std::string& k)
+{
+    std::lock_guard lock(mtx);
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return 0;
+    const auto& val = std::get<std::unordered_map<std::string,std::string>>(found->second.value);
+
+    return val.size();
+}
+std::vector<std::optional<std::string>> KVStore::hkeys(const std::string& k)
+{
+    std::lock_guard lock(mtx);
+    std::vector<std::optional<std::string>> ret{};
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return ret;
+    auto& val = std::get<std::unordered_map<std::string,std::string>>(found->second.value);
+
+    for (const auto& i : val)
+    {
+        ret.emplace_back(std::make_optional(i.first));
+    }
+    return ret;
+}
+std::vector<std::optional<std::string>> KVStore::hvals(const std::string& k)
+{
+    std::lock_guard lock(mtx);
+    std::vector<std::optional<std::string>> ret{};
+
+    const auto found = dict.find(k);
+    if (found == dict.end()) return ret;
+    const auto& val = std::get<std::unordered_map<std::string,std::string>>(found->second.value);
+
+    for (const auto& i : val)
+    {
+        ret.emplace_back(std::make_optional(i.second));
+    }
+    return ret;
+}
+std::vector<std::optional<std::string>> KVStore::hmget(const std::vector<std::string>& args)
+{
+    std::lock_guard lock(mtx);
+    const std::string& key = args[0];
+    std::vector<std::optional<std::string>> ret{};
+
+    const auto found = dict.find(key);
+    if (found == dict.end())
+    {
+        ret.resize(args.size() - 1, std::nullopt); //bit messy but will do?
+        return ret;
+    }
+    auto& val = std::get<std::unordered_map<std::string, std::string>>(found->second.value);
+
+    for (auto i = 1; i < args.size(); ++i)
+    {
+        const auto field = val.find(args[i]);
+
+        if (field == val.end()) ret.emplace_back(std::nullopt);
+        else ret.emplace_back(std::make_optional(field->second));
+    }
+
+    return ret;
+}
 

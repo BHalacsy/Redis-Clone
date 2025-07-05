@@ -12,7 +12,7 @@ enum class Commands
     INCR, DCR, EXPIRE, TTL, FLUSHALL, MGET,
     LPUSH, RPUSH, LPOP, RPOP, LRANGE, LLEN, LINDEX, LSET, LREM, //LMOVE?
     SADD, SREM, SISMEMBER, SMEMBERS, SCARD, SPOP,
-    HSET, HGET, HDEL, HEXISTS, HLEN, HKEYS, HVALS, HMSET, HMGET,
+    HSET, HGET, HDEL, HEXISTS, HLEN, HKEYS, HVALS, HMGET,
     //HGETALL??
     MULTI, EXEC, DISCARD, WATCH, //TODO implement later
     UNKNOWN
@@ -43,20 +43,19 @@ std::string handleLINDEX(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleLSET(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleLREM(KVStore& kvstore, const std::vector<std::string>& args);
 
-// std::string handleSADD(KVStore& kvstore, const std::vector<std::string>& args);
-// std::string handleSREM(KVStore& kvstore, const std::vector<std::string>& args);
-// std::string handleSISMEMBER(KVStore& kvstore, const std::vector<std::string>& args);
-// std::string handleSMEMBERS(KVStore& kvstore, const std::vector<std::string>& args);
-// std::string handleSCARD(KVStore& kvstore, const std::vector<std::string>& args);
-// std::string handleSPOP(KVStore& kvstore, const std::vector<std::string>& args);
-//
-// std::string handleHSET(KVStore& kvstore, const std::vector<std::string>& args);
-// std::string handleHGET(KVStore& kvstore, const std::vector<std::string>& args);
-// std::string handleHDEL(KVStore& kvstore, const std::vector<std::string>& args);
-// std::string handleHEXISTS(KVStore& kvstore, const std::vector<std::string>& args);
-// std::string handleHLEN(KVStore& kvstore, const std::vector<std::string>& args);
-// std::string handleHKEYS(KVStore& kvstore, const std::vector<std::string>& args);
-// std::string handleHVALS(KVStore& kvstore, const std::vector<std::string>& args);
-// std::string handleHMSET(KVStore& kvstore, const std::vector<std::string>& args);
-// std::string handleHMGET(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleSADD(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleSREM(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleSISMEMBER(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleSMEMBERS(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleSCARD(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleSPOP(KVStore& kvstore, const std::vector<std::string>& args);
+
+std::string handleHSET(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleHGET(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleHDEL(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleHEXISTS(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleHLEN(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleHKEYS(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleHVALS(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleHMGET(KVStore& kvstore, const std::vector<std::string>& args);
 

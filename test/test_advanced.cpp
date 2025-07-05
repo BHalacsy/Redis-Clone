@@ -149,195 +149,195 @@ TEST_CASE("Lrem method", "[lrem][kvstore method][unit]")
         REQUIRE(kv.lrem("otherlist", 0, "c") == 0);
     }
 }
-// TEST_CASE("Sadd method", "[sadd][kvstore method][unit]")
-// {
-//     KVStore kv(false);
-//
-//     SECTION("Sadd expected")
-//     {
-//         REQUIRE(kv.sadd({"myset", "a", "b", "c"}) == 3);
-//     }
-//
-//     SECTION("Sadd existing")
-//     {
-//         REQUIRE(kv.sadd({"myset", "b", "d"}) == 1);
-//     }
-// }
-// TEST_CASE("Srem method", "[srem][kvstore method][unit]")
-// {
-//     KVStore kv(false);
-//     kv.sadd({"myset", "a", "b", "c"});
-//
-//     SECTION("Srem expected")
-//     {
-//         REQUIRE(kv.srem({"myset", "b", "x"}) == 1);
-//         REQUIRE(kv.sismember("myset", "b") == false);
-//     }
-//
-//     SECTION("Srem non-existing set")
-//     {
-//         REQUIRE(kv.srem({"otherset", "a", "c"}) == 0);
-//     }
-// }
-//
-// TEST_CASE("Sismember method", "[sismember][kvstore method][unit]")
-// {
-//     KVStore kv(false);
-//     kv.sadd({"myset", "a", "b", "c"});
-//
-//     SECTION("Sismember expected")
-//     {
-//         REQUIRE(kv.sismember("myset", "b") == true);
-//         REQUIRE(kv.sismember("myset", "x") == false);
-//
-//     }
-//
-//     SECTION("Sismember non-existing set")
-//     {
-//         REQUIRE(kv.sismember("otherset", "a") == false);
-//     }
-// }
-// TEST_CASE("Smembers method", "[Smembers][kvstore method][unit]")
-// {
-//     KVStore kv(false);
-//     kv.sadd({"myset", "a", "b", "c"});
-//
-//     SECTION("Smembers expected")
-//     {
-//         auto members = kv.smembers("myset");
-//         std::set<std::string> res;
-//         for (auto i : members) if (i) res.insert(*i);
-//         REQUIRE(res == std::set<std::string>{"a", "b", "c"});
-//     }
-//
-//     SECTION("Smembers non-existing set")
-//     {
-//         REQUIRE(kv.smembers("otherset").empty());
-//     }
-// }
-// TEST_CASE("Scard method", "[Scard][kvstore method][unit]")
-// {
-//     KVStore kv(false);
-//     kv.sadd({"myset", "a", "b", "c"});
-//
-//     SECTION("Scard expected")
-//     {
-//         REQUIRE(kv.scard("myset") == 3);
-//         kv.srem({"myset", "a"});
-//         REQUIRE(kv.scard("myset") == 2);
-//     }
-//
-//     SECTION("Scard non-existing set")
-//     {
-//         REQUIRE(kv.scard("otherset") == 0);
-//     }
-// }
-// TEST_CASE("Spops method", "[spop][kvstore method][unit]")
-// {
-//     KVStore kv(false);
-//     kv.sadd({"myset", "a", "b", "c"});
-//
-//     SECTION("Spop expected")
-//     {
-//         auto popped = kv.spop("myset", 2);
-//         REQUIRE(popped.size() == 2);
-//         REQUIRE(kv.scard("myset") == 1);
-//     }
-//
-//     SECTION("Spop non-existing set")
-//     {
-//         auto popped = kv.spop("otherset", 2);
-//         REQUIRE(popped.empty());
-//     }
-// }
-//
-// TEST_CASE("Hset and Hget methods", "[hset/hget][kvstore method][unit]")
-// {
-//     KVStore kv(false);
-//
-//     SECTION("Hset and Hget new elements expected")
-//     {
-//         REQUIRE(kv.hset("myhash", "f1", "v1") == 1);
-//         REQUIRE(kv.hget("myhash", "f1") == "v1");
-//     }
-//
-//     SECTION("Hset overwrite field") {
-//         REQUIRE(kv.hset("myhash", "f1", "v2") == 0);
-//         REQUIRE(kv.hget("myhash", "f1") == "v2");
-//     }
-//     SECTION("Hget empty key and empty field list")
-//     {
-//         REQUIRE(kv.hget("otherhash", "f1") == std::nullopt);
-//         REQUIRE(kv.hget("myhash", "otherfield") == std::nullopt);
-//     }
-// }
-// TEST_CASE("Hdel and Hexists methods", "[hdel/hexists][kvstore method][unit]")
-// {
-//     KVStore kv(false);
-//     kv.hmset({"myhash", "f1", "v1", "f2", "v2"});
-//
-//     SECTION("Hdel and Hexists new elements expected")
-//     {
-//         REQUIRE(kv.hdel({"myhash", "f1"}) == 1);
-//         REQUIRE(kv.hexists({"myhash", "f1"}) == false);
-//         REQUIRE(kv.hexists({"myhash", "f2"}) == true);
-//     }
-//
-//     SECTION("Hdel non-existing field") {
-//         REQUIRE(kv.hdel({"myhash", "f3"}) == 0);
-//     }
-// }
-// TEST_CASE("Hlen, Hkeys, Hvals methods", "[hlen/hkeys/hvals][kvstore method][unit]")
-// {
-//     KVStore kv(false);
-//     kv.hmset({"myhash", "f1", "v1", "f2", "v2", "f3", "v3"});
-//
-//     SECTION("Hlen expected")
-//     {
-//         REQUIRE(kv.hlen("myhash") == 3);
-//     }
-//
-//     SECTION("Hkeys returns all fields") {
-//         auto keys = kv.hkeys("myhash");
-//         std::set<std::string> expected = {"f1", "f2", "f3"};
-//         std::set<std::string> actual(keys.begin(), keys.end());
-//         REQUIRE(actual == expected);
-//     }
-//
-//     SECTION("Hvals returns all values") {
-//         auto vals = kv.hvals("myhash");
-//         std::set<std::string> expected = {"v1", "v2", "v3"};
-//         std::set<std::string> actual(vals.begin(), vals.end());
-//         REQUIRE(actual == expected);
-//     }
-// }
-// TEST_CASE("Hmset and Hmget methods", "[hmset/hmget][kvstore method][unit]")
-// {
-//     KVStore kv(false);
-//     SECTION("Hmset and Hmget expected")
-//     {
-//         REQUIRE(kv.hmset({"myhash", "f1", "v1", "f2", "v2", "f3", "v3"}) == true);
-//         auto vals = kv.hmget({"myhash", "f1", "f2", "f3", "f4"});
-//         REQUIRE(vals.size() == 4);
-//         REQUIRE(vals[0] == "v1");
-//         REQUIRE(vals[1] == "v2");
-//         REQUIRE(vals[2] == "v3");
-//         REQUIRE(vals[3] == std::nullopt);
-//     }
-//
-//     SECTION("Hmset with empty field-value list")
-//     {
-//         REQUIRE(kv.hmset({"myhash"}) == false);
-//     }
-//
-//     SECTION("Hmget on non-existing hash")
-//     {
-//         auto vals = kv.hmget({"nohash", "f1", "f2"});
-//         REQUIRE(vals.size() == 2);
-//         REQUIRE(vals[0] == std::nullopt);
-//         REQUIRE(vals[1] == std::nullopt);
-//     }
-// }
+TEST_CASE("Sadd method", "[sadd][kvstore method][unit]")
+{
+    KVStore kv(false);
+
+    SECTION("Sadd expected and add existing")
+    {
+        REQUIRE(kv.sadd({"myset", "a", "b", "c"}) == 3);
+        REQUIRE(kv.sadd({"myset", "b", "d"}) == 1);
+        REQUIRE(kv.sadd({"myset", "b", "d"}) == 0);
+    }
+}
+TEST_CASE("Srem method", "[srem][kvstore method][unit]")
+{
+    KVStore kv(false);
+    kv.sadd({"myset", "a", "b", "c"});
+
+    SECTION("Srem expected")
+    {
+        REQUIRE(kv.srem({"myset", "b", "x"}) == 1);
+        REQUIRE(kv.sismember("myset", "b") == false);
+    }
+
+    SECTION("Srem non-existing set")
+    {
+        REQUIRE(kv.srem({"otherset", "a", "c"}) == 0);
+    }
+}
+
+TEST_CASE("Sismember method", "[sismember][kvstore method][unit]")
+{
+    KVStore kv(false);
+    kv.sadd({"myset", "a", "b", "c"});
+
+    SECTION("Sismember expected")
+    {
+        REQUIRE(kv.sismember("myset", "b") == true);
+        REQUIRE(kv.sismember("myset", "x") == false);
+
+    }
+
+    SECTION("Sismember non-existing set")
+    {
+        REQUIRE(kv.sismember("otherset", "a") == false);
+    }
+}
+TEST_CASE("Smembers method", "[Smembers][kvstore method][unit]")
+{
+    KVStore kv(false);
+    kv.sadd({"myset", "a", "b", "c"});
+
+    SECTION("Smembers expected")
+    {
+        auto members = kv.smembers("myset");
+        std::set<std::string> res;
+        for (auto i : members) if (i) res.insert(*i);
+        REQUIRE(res == std::set<std::string>{"a", "b", "c"});
+    }
+
+    SECTION("Smembers non-existing set")
+    {
+        REQUIRE(kv.smembers("otherset").empty());
+    }
+}
+TEST_CASE("Scard method", "[Scard][kvstore method][unit]")
+{
+    KVStore kv(false);
+    kv.sadd({"myset", "a", "b", "c"});
+
+    SECTION("Scard expected")
+    {
+        REQUIRE(kv.scard("myset") == 3);
+        kv.srem({"myset", "a"});
+        REQUIRE(kv.scard("myset") == 2);
+    }
+
+    SECTION("Scard non-existing set")
+    {
+        REQUIRE(kv.scard("otherset") == 0);
+    }
+}
+TEST_CASE("Spops method", "[spop][kvstore method][unit]")
+{
+    KVStore kv(false);
+    kv.sadd({"myset", "a", "b", "c"});
+
+    SECTION("Spop expected")
+    {
+        auto popped = kv.spop("myset", 2);
+        REQUIRE(popped.size() == 2);
+        REQUIRE(kv.scard("myset") == 1);
+    }
+
+    SECTION("Spop non-existing set")
+    {
+        auto popped = kv.spop("otherset", 2);
+        REQUIRE(popped.empty());
+    }
+}
+
+TEST_CASE("Hset and Hget methods", "[hset/hget][kvstore method][unit]")
+{
+    KVStore kv(false);
+
+    SECTION("Hset and Hget new elements expected and overwrite field")
+    {
+        REQUIRE(kv.hset({"myhash", "f1", "v1"}) == 1);
+        REQUIRE(kv.hget("myhash", "f1") == "v1");
+        REQUIRE(kv.hset({"myhash", "f1", "v2"}) == 0);
+        REQUIRE(kv.hget("myhash", "f1") == "v2");
+    }
+
+    SECTION("HsetHget empty key and empty field list")
+    {
+        REQUIRE(kv.hget("otherhash", "f1") == std::nullopt);
+        REQUIRE(kv.hget("myhash", "otherfield") == std::nullopt);
+    }
+}
+TEST_CASE("Hdel and Hexists methods", "[hdel/hexists][kvstore method][unit]")
+{
+    KVStore kv(false);
+    kv.hset({"myhash", "f1", "v1", "f2", "v2"});
+
+    SECTION("Hdel and Hexists new elements expected")
+    {
+        REQUIRE(kv.hdel({"myhash", "f1"}) == 1);
+        REQUIRE(kv.hexists("myhash", "f1") == false);
+        REQUIRE(kv.hexists("myhash", "f2") == true);
+    }
+
+    SECTION("Hdel non-existing field") {
+        REQUIRE(kv.hdel({"myhash", "f3"}) == 0);
+    }
+}
+TEST_CASE("Hlen, Hkeys, Hvals methods", "[hlen/hkeys/hvals][kvstore method][unit]")
+{
+    KVStore kv(false);
+    kv.hset({"myhash", "f1", "v1", "f2", "v2", "f3", "v3"});
+
+    SECTION("Hlen expected")
+    {
+        REQUIRE(kv.hlen("myhash") == 3);
+    }
+
+    SECTION("Hkeys returns all fields") {
+        auto keys = kv.hkeys("myhash");
+        std::set<std::string> expected = {"f1", "f2", "f3"};
+        std::set<std::string> actual;
+        for (const auto& key : keys) {
+            if (key) {
+                actual.insert(*key);
+            }
+        }
+        REQUIRE(actual == expected);
+    }
+
+    SECTION("Hvals returns all values") {
+        auto vals = kv.hvals("myhash");
+        std::set<std::string> expected = {"v1", "v2", "v3"};
+        std::set<std::string> actual;
+        for (const auto& val : vals) {
+            if (val) {
+                actual.insert(*val);
+            }
+        }
+        REQUIRE(actual == expected);
+    }
+}
+TEST_CASE("Hmget methods", "[hmget][kvstore method][unit]")
+{
+    KVStore kv(false);
+    kv.hset({"myhash", "f1", "v1", "f2", "v2", "f3", "v3"});
+    SECTION("Hmget expected")
+    {
+        auto vals = kv.hmget({"myhash", "f1", "f2", "f3", "f4"});
+        REQUIRE(vals.size() == 4);
+        REQUIRE(vals[0] == "v1");
+        REQUIRE(vals[1] == "v2");
+        REQUIRE(vals[2] == "v3");
+        REQUIRE(vals[3] == std::nullopt);
+    }
+
+    SECTION("Hmget on non-existing hash")
+    {
+        auto vals = kv.hmget({"nohash", "f1", "f2"});
+        REQUIRE(vals.size() == 2);
+        REQUIRE(vals[0] == std::nullopt);
+        REQUIRE(vals[1] == std::nullopt);
+    }
+}
 
 
 TEST_CASE("LPUSH and RPUSH commands", "[lpush/rpush][command handler][unit]")
@@ -434,7 +434,7 @@ TEST_CASE("LSET command", "[lset][command handler][unit]")
 
         REQUIRE(handleLSET(kv, {"mylist", "1", "z"}) == "+OK\r\n");
         REQUIRE(kv.rpop("mylist") == "z");
-        REQUIRE(handleLSET(kv, {"mylist", "5", "x"}) == "-ERR value is not an integer or out of range\r\n");
+        REQUIRE(handleLSET(kv, {"mylist", "5", "x"}) == "-ERR no such key or value out of range\r\n");
     }
 
     SECTION("LSET bad args")
@@ -461,253 +461,223 @@ TEST_CASE("LREM command", "[lrem][command handler][unit]")
     }
 }
 
-// TEST_CASE("SADD command", "[sadd][command handler][unit]")
-// {
-//     KVStore kv(false);
-//
-//     SECTION("SADD expected")
-//     {
-//         REQUIRE(handleSADD(kv, {"myset", "a", "b", "c"}) == ":3\r\n");
-//         REQUIRE(handleSADD(kv, {"myset", "b", "d"}) == ":1\r\n");
-//     }
-//
-//     SECTION("SADD bad args")
-//     {
-//         REQUIRE(handleSADD(kv, {"myset"}) == argumentError("2 or more", 1));
-//         REQUIRE(handleSADD(kv, {}) == argumentError("2 or more", 0));
-//     }
-// }
-// TEST_CASE("SREM command", "[srem][command handler][unit]")
-// {
-//     KVStore kv(false);
-//     kv.sadd({"myset", "a", "b", "c"});
-//
-//     SECTION("SREM expected")
-//     {
-//         REQUIRE(handleSREM(kv, {"myset", "b", "x"}) == ":1\r\n");
-//         REQUIRE(handleSREM(kv, {"myset", "a", "c"}) == ":2\r\n");
-//     }
-//
-//     SECTION("SREM bad args")
-//     {
-//         REQUIRE(handleSREM(kv, {"myset"}) == argumentError("2 or more", 1));
-//         REQUIRE(handleSREM(kv, {}) == argumentError("2 or more", 0));
-//     }
-// }
-// TEST_CASE("SISMEMBER command", "[sismember][command handler][unit]")
-// {
-//     KVStore kv(false);
-//     kv.sadd({"myset", "a", "b", "c"});
-//
-//     SECTION("SISMEMBER expected")
-//     {
-//         REQUIRE(handleSISMEMBER(kv, {"myset", "b"}) == ":1\r\n");
-//         REQUIRE(handleSISMEMBER(kv, {"myset", "x"}) == ":0\r\n");
-//     }
-//
-//     SECTION("SISMEMBER bad args")
-//     {
-//         REQUIRE(handleSISMEMBER(kv, {"myset"}) == argumentError("2", 1));
-//         REQUIRE(handleSISMEMBER(kv, {}) == argumentError("2", 0));
-//     }
-// }
-// TEST_CASE("SMEMBERS command", "[smembers][command handler][unit]")
-// {
-//     KVStore kv(false);
-//     kv.sadd({"myset", "a", "bx", "c"});
-//
-//     SECTION("SMEMBERS expected")
-//     {
-//         REQUIRE(handleSMEMBERS(kv, {"myset"}) == "*3\r\n$1\r\na\r\n$2\r\nbx\r\n$1\r\nc\r\n");
-//     }
-//
-//     SECTION("SMEMBERS non-existing set")
-//     {
-//         REQUIRE(handleSMEMBERS(kv, {"otherset"}) == "*0\r\n");
-//     }
-//
-//     SECTION("SMEMBERS bad args")
-//     {
-//         REQUIRE(handleSMEMBERS(kv, {}) == argumentError("1", 0));
-//         REQUIRE(handleSMEMBERS(kv, {"myset", "more"}) == argumentError("1", 2));
-//     }
-// }
-// TEST_CASE("SCARD command", "[scard][command handler][unit]")
-// {
-//     KVStore kv(false);
-//     kv.sadd({"myset", "a", "b", "c"});
-//
-//     SECTION("SCARD expected")
-//     {
-//         REQUIRE(handleSCARD(kv, {"myset"}) == ":3\r\n");
-//         kv.srem({"myset", "a"});
-//         REQUIRE(handleSCARD(kv, {"myset"}) == ":2\r\n");
-//     }
-//
-//     SECTION("SCARD non-existing set")
-//     {
-//         REQUIRE(handleSCARD(kv, {"otherset"}) == ":0\r\n");
-//     }
-//
-//     SECTION("SCARD bad args")
-//     {
-//         REQUIRE(handleSCARD(kv, {}) == argumentError("1", 0));
-//         REQUIRE(handleSCARD(kv, {"myset", "more"}) == argumentError("1", 2));
-//     }
-// }
-// TEST_CASE("SPOP command", "[spop][command handler][unit]")
-// {
-//
-//     /*TODO this tests
-//     Nil reply: if the key does not exist.
-//     Bulk string reply: when called without the count argument, the removed member.
-//     Array reply: when called with the count argument, a list of the removed members.*/
-//     KVStore kv(false);
-//     kv.sadd({"myset", "a", "b", "c"});
-//
-//     SECTION("SPOP expected")
-//     {
-//         auto popped = handleSPOP(kv, {"myset"});
-//         REQUIRE(popped == "$1\r\na\r\n" || popped == "$1\r\nb\r\n" || popped == "$1\r\nc\r\n");
-//         REQUIRE(kv.scard("myset") == 2);
-//     }
-//
-//     SECTION("SPOP non-existing set")
-//     {
-//         REQUIRE(handleSPOP(kv, {"nonexists"}) == "$-1\r\n");
-//     }
-//
-//     SECTION("SPOP bad args")
-//     {
-//         REQUIRE(handleSPOP(kv, {"myset", "2", "more"}) == argumentError("1 or 2", 3));
-//         REQUIRE(handleSPOP(kv, {}) == argumentError("1 or 2", 0));
-//         REQUIRE(handleSPOP(kv, {"myset", "notanumber"}) == "-ERR value is not an integer or out of range\r\n");
-//     }
-// }
-//
-// TEST_CASE("HSET and HGET commands", "[hset/hget][command handler][unit]")
-// {
-//     KVStore kv(false);
-//     SECTION("HSET and HGET expected")
-//     {
-//         REQUIRE(handleHSET(kv, {"myhash", "f1", "v1"}) == ":1\r\n");
-//         REQUIRE(handleHSET(kv, {"myhash", "f1", "v2"}) == ":0\r\n");
-//         REQUIRE(handleHGET(kv, {"myhash", "f1"}) == "$2\r\nv2\r\n");
-//         REQUIRE(handleHGET(kv, {"myhash", "f2"}) == "$-1\r\n");
-//     }
-//
-//     SECTION("HSET and HGET bad args")
-//     {
-//         REQUIRE(handleHSET(kv, {"myhash", "f1"}) == argumentError("3", 2));
-//         REQUIRE(handleHSET(kv, {}) == argumentError("3", 0));
-//         REQUIRE(handleHGET(kv, {"myhash"}) == argumentError("2", 1));
-//         REQUIRE(handleHGET(kv, {}) == argumentError("2", 0));
-//     }
-// }
-// TEST_CASE("HDEL and HEXISTS commands", "[hdel/hexists][command handler][unit]")
-// {
-//     KVStore kv(false);
-//     kv.hmset({"myhash", "f1", "v1", "f2", "v2"});
-//     SECTION("HDEL and HEXISTS expected")
-//     {
-//         REQUIRE(handleHEXISTS(kv, {"myhash", "f1"}) == ":1\r\n");
-//         REQUIRE(handleHDEL(kv, {"myhash", "f1"}) == ":1\r\n");
-//         REQUIRE(handleHDEL(kv, {"myhash", "f3"}) == ":0\r\n");
-//         REQUIRE(handleHEXISTS(kv, {"myhash", "f1"}) == ":0\r\n");
-//     }
-//
-//     SECTION("HDEL and HEXISTS bad args")
-//     {
-//         REQUIRE(handleHDEL(kv, {"myhash"}) == argumentError("2 or more", 1));
-//         REQUIRE(handleHDEL(kv, {}) == argumentError("2 or more", 0));
-//         REQUIRE(handleHEXISTS(kv, {"myhash"}) == argumentError("2", 1));
-//         REQUIRE(handleHEXISTS(kv, {}) == argumentError("2", 0));
-//     }
-// }
-// TEST_CASE("HDEL and HEXISTS commands", "[hdel/hexists][command handler][unit]")
-// {
-//     KVStore kv(false);
-//     kv.hmset({"myhash", "f1", "v1", "f2", "v2"});
-//     SECTION("HDEL and HEXISTS expected")
-//     {
-//         REQUIRE(handleHEXISTS(kv, {"myhash", "f1"}) == ":1\r\n");
-//         REQUIRE(handleHDEL(kv, {"myhash", "f1", "f2"}) == ":2\r\n");
-//         REQUIRE(handleHDEL(kv, {"myhash", "f3"}) == ":0\r\n");
-//         REQUIRE(handleHEXISTS(kv, {"myhash", "f1"}) == ":0\r\n");
-//     }
-//
-//     SECTION("HDEL and HEXISTS bad args")
-//     {
-//         REQUIRE(handleHDEL(kv, {"myhash"}) == argumentError("2 or more", 1));
-//         REQUIRE(handleHDEL(kv, {}) == argumentError("2 or more", 0));
-//         REQUIRE(handleHEXISTS(kv, {"myhash"}) == argumentError("2", 1));
-//         REQUIRE(handleHEXISTS(kv, {}) == argumentError("2", 0));
-//     }
-// }
-// TEST_CASE("HLEN command", "[hlen][command handler][unit]")
-// {
-//     KVStore kv(false);
-//     kv.hset("myhash", "f1", "v1");
-//     kv.hset("myhash", "f2", "v2");
-//
-//     SECTION("HLEN expected")
-//     {
-//         REQUIRE(handleHLEN(kv, {"myhash"}) == ":2\r\n");
-//         REQUIRE(handleHLEN(kv, {"otherhash"}) == ":0\r\n");
-//     }
-//
-//     SECTION("HLEN bad args")
-//     {
-//         REQUIRE(handleHLEN(kv, {}) == argumentError("1", 0));
-//         REQUIRE(handleHLEN(kv, {"myhash", "more"}) == argumentError("1", 2));
-//     }
-// }
-// TEST_CASE("HKEYS and HVALS commands", "[hkeys/hvals][command handler][unit]")
-// {
-//     KVStore kv(false);
-//     kv.hset("myhash", "f1", "v1");
-//     kv.hset("myhash", "f2", "v2");
-//
-//     SECTION("HKEYS and HVALS expected")
-//     {
-//
-//         REQUIRE(handleHKEYS(kv, {"myhash"}) == "*2\r\n$2\r\nf1\r\n$2\r\nf2\r\n");
-//         REQUIRE(handleHKEYS(kv, {"otherhash"}) == "*0\r\n");
-//         REQUIRE(handleHVALS(kv, {"myhash"}) == "*2\r\n$2\r\nv1\r\n$2\r\nv2\r\n");
-//         REQUIRE(handleHVALS(kv, {"otherhash"}) == "*0\r\n");
-//     }
-//
-//     SECTION("HKEYS and HVALS bad args")
-//     {
-//         REQUIRE(handleHKEYS(kv, {}) == argumentError("1", 0));
-//         REQUIRE(handleHKEYS(kv, {"myhash", "more"}) == argumentError("1", 2));
-//         REQUIRE(handleHVALS(kv, {}) == argumentError("1", 0));
-//         REQUIRE(handleHVALS(kv, {"myhash", "more"}) == argumentError("1", 2));
-//     }
-// }
-// TEST_CASE("HMSET and HMGET commands", "[hmset/hmget][command handler][unit]")
-// {
-//     KVStore kv(false);
-//     kv.hset("myhash", "f1", "v1");
-//     kv.hset("myhash", "f2", "v2");
-//
-//     SECTION("HMSET and HMGET expected")
-//     {
-//
-//         REQUIRE(handleHMSET(kv, {"myhash", "f1", "v1", "f2", "v2"}) == "+OK\r\n");
-//         REQUIRE(handleHMGET(kv, {"myhash", "f1", "f2", "f3"}) == "*3\r\n$2\r\nv1\r\n$2\r\nv2\r\n$-1\r\n");
-//         REQUIRE(handleHMGET(kv, {"otherhash"}) == "*0\r\n");
-//     }
-//
-//     SECTION("HMSET and HMGET bad args")
-//     {
-//         REQUIRE(handleHMSET(kv, {"myhash", "f1"}) == "-ERR not even field-value pairs\r\n");
-//         REQUIRE(handleHMSET(kv, {}) == "-ERR not even field-value pairs\r\n");
-//         REQUIRE(handleHMGET(kv, {"myhash"}) == argumentError("2 or more", 1));
-//         REQUIRE(handleHMGET(kv, {}) == argumentError("2 or more", 0));
-//     }
-// }
-//
+TEST_CASE("SADD command", "[sadd][command handler][unit]")
+{
+    KVStore kv(false);
+
+    SECTION("SADD expected")
+    {
+        REQUIRE(handleSADD(kv, {"myset", "a", "b", "c"}) == ":3\r\n");
+        REQUIRE(handleSADD(kv, {"myset", "b", "d"}) == ":1\r\n");
+    }
+
+    SECTION("SADD bad args")
+    {
+        REQUIRE(handleSADD(kv, {"myset"}) == argumentError("2 or more", 1));
+        REQUIRE(handleSADD(kv, {}) == argumentError("2 or more", 0));
+    }
+}
+TEST_CASE("SREM command", "[srem][command handler][unit]")
+{
+    KVStore kv(false);
+    kv.sadd({"myset", "a", "b", "c"});
+
+    SECTION("SREM expected")
+    {
+        REQUIRE(handleSREM(kv, {"myset", "b", "x"}) == ":1\r\n");
+        REQUIRE(handleSREM(kv, {"myset", "a", "c"}) == ":2\r\n");
+    }
+
+    SECTION("SREM bad args")
+    {
+        REQUIRE(handleSREM(kv, {"myset"}) == argumentError("2 or more", 1));
+        REQUIRE(handleSREM(kv, {}) == argumentError("2 or more", 0));
+    }
+}
+TEST_CASE("SISMEMBER command", "[sismember][command handler][unit]")
+{
+    KVStore kv(false);
+    kv.sadd({"myset", "a", "b", "c"});
+
+    SECTION("SISMEMBER expected")
+    {
+        REQUIRE(handleSISMEMBER(kv, {"myset", "b"}) == ":1\r\n");
+        REQUIRE(handleSISMEMBER(kv, {"myset", "x"}) == ":0\r\n");
+    }
+
+    SECTION("SISMEMBER bad args")
+    {
+        REQUIRE(handleSISMEMBER(kv, {"myset"}) == argumentError("2", 1));
+        REQUIRE(handleSISMEMBER(kv, {}) == argumentError("2", 0));
+    }
+}
+TEST_CASE("SMEMBERS command", "[smembers][command handler][unit]")
+{
+    KVStore kv(false);
+    kv.sadd({"myset", "c", "bx", "a"});
+
+    SECTION("SMEMBERS expected")
+    {
+        REQUIRE(handleSMEMBERS(kv, {"myset"}) == "*3\r\n$1\r\na\r\n$2\r\nbx\r\n$1\r\nc\r\n");
+    }
+
+    SECTION("SMEMBERS non-existing set")
+    {
+        REQUIRE(handleSMEMBERS(kv, {"otherset"}) == "*0\r\n");
+    }
+
+    SECTION("SMEMBERS bad args")
+    {
+        REQUIRE(handleSMEMBERS(kv, {}) == argumentError("1", 0));
+        REQUIRE(handleSMEMBERS(kv, {"myset", "more"}) == argumentError("1", 2));
+    }
+}
+TEST_CASE("SCARD command", "[scard][command handler][unit]")
+{
+    KVStore kv(false);
+    kv.sadd({"myset", "a", "b", "c"});
+
+    SECTION("SCARD expected")
+    {
+        REQUIRE(handleSCARD(kv, {"myset"}) == ":3\r\n");
+        kv.srem({"myset", "a"});
+        REQUIRE(handleSCARD(kv, {"myset"}) == ":2\r\n");
+    }
+
+    SECTION("SCARD non-existing set")
+    {
+        REQUIRE(handleSCARD(kv, {"otherset"}) == ":0\r\n");
+    }
+
+    SECTION("SCARD bad args")
+    {
+        REQUIRE(handleSCARD(kv, {}) == argumentError("1", 0));
+        REQUIRE(handleSCARD(kv, {"myset", "more"}) == argumentError("1", 2));
+    }
+}
+TEST_CASE("SPOP command", "[spop][command handler][unit]")
+{
+    //Didn't do multi pop because its random
+    KVStore kv(false);
+    kv.sadd({"myset", "a", "b"});
+
+    SECTION("SPOP expected")
+    {
+        auto popped = handleSPOP(kv, {"myset"});
+
+        REQUIRE((popped == "$1\r\na\r\n" || popped == "$1\r\nb\r\n"));
+        REQUIRE(kv.scard("myset") == 1);
+    }
+
+    SECTION("SPOP non-existing set")
+    {
+        REQUIRE(handleSPOP(kv, {"nonexists"}) == "$-1\r\n");
+    }
+
+    SECTION("SPOP bad args")
+    {
+        REQUIRE(handleSPOP(kv, {"myset", "2", "more"}) == argumentError("1 or 2", 3));
+        REQUIRE(handleSPOP(kv, {}) == argumentError("1 or 2", 0));
+        REQUIRE(handleSPOP(kv, {"myset", "notanumber"}) == "-ERR value is not an integer or out of range\r\n");
+    }
+}
+
+TEST_CASE("HSET and HGET commands", "[hset/hget][command handler][unit]")
+{
+    KVStore kv(false);
+    SECTION("HSET and HGET expected")
+    {
+        REQUIRE(handleHSET(kv, {"myhash", "f1", "v1"}) == ":1\r\n");
+        REQUIRE(handleHSET(kv, {"myhash", "f1", "v2"}) == ":0\r\n");
+        REQUIRE(handleHGET(kv, {"myhash", "f1"}) == "$2\r\nv2\r\n");
+        REQUIRE(handleHGET(kv, {"myhash", "f2"}) == "$-1\r\n");
+    }
+
+    SECTION("HSET and HGET bad args")
+    {
+        REQUIRE(handleHSET(kv, {"myhash", "f1"}) == argumentError("3 or more", 2));\
+        REQUIRE(handleHSET(kv, {"myhash", "f1", "v2", "f2"}) == "-ERR expected pair of fields and values");
+        REQUIRE(handleHSET(kv, {}) == argumentError("3 or more", 0));
+        REQUIRE(handleHGET(kv, {"myhash"}) == argumentError("2", 1));
+        REQUIRE(handleHGET(kv, {}) == argumentError("2", 0));
+    }
+}
+TEST_CASE("HDEL and HEXISTS commands", "[hdel/hexists][command handler][unit]")
+{
+    KVStore kv(false);
+    kv.hset({"myhash", "f1", "v1", "f2", "v2"});
+    SECTION("HDEL and HEXISTS expected")
+    {
+        REQUIRE(handleHEXISTS(kv, {"myhash", "f1"}) == ":1\r\n");
+        REQUIRE(handleHDEL(kv, {"myhash", "f1", "f2"}) == ":2\r\n");
+        REQUIRE(handleHDEL(kv, {"myhash", "f3"}) == ":0\r\n");
+        REQUIRE(handleHEXISTS(kv, {"myhash", "f1"}) == ":0\r\n");
+    }
+
+    SECTION("HDEL and HEXISTS bad args")
+    {
+        REQUIRE(handleHDEL(kv, {"myhash"}) == argumentError("2 or more", 1));
+        REQUIRE(handleHDEL(kv, {}) == argumentError("2 or more", 0));
+        REQUIRE(handleHEXISTS(kv, {"myhash"}) == argumentError("2", 1));
+        REQUIRE(handleHEXISTS(kv, {}) == argumentError("2", 0));
+    }
+}
+TEST_CASE("HLEN command", "[hlen][command handler][unit]")
+{
+    KVStore kv(false);
+    kv.hset({"myhash", "f1", "v1", "f2", "v2"});
+
+    SECTION("HLEN expected")
+    {
+        REQUIRE(handleHLEN(kv, {"myhash"}) == ":2\r\n");
+        REQUIRE(handleHLEN(kv, {"otherhash"}) == ":0\r\n");
+    }
+
+    SECTION("HLEN bad args")
+    {
+        REQUIRE(handleHLEN(kv, {}) == argumentError("1", 0));
+        REQUIRE(handleHLEN(kv, {"myhash", "more"}) == argumentError("1", 2));
+    }
+}
+TEST_CASE("HKEYS and HVALS commands", "[hkeys/hvals][command handler][unit]")
+{
+    KVStore kv(false);
+    kv.hset({"myhash", "f1", "v1", "f2", "v2"});
+
+    SECTION("HKEYS and HVALS expected")
+    {
+        //TODO make consistent or embrace randomness also check why hvals not random return
+        REQUIRE(handleHKEYS(kv, {"myhash"}) == "*2\r\n$2\r\nf2\r\n$2\r\nf1\r\n");
+        REQUIRE(handleHKEYS(kv, {"otherhash"}) == "*0\r\n");
+        REQUIRE(handleHVALS(kv, {"myhash"}) == "*2\r\n$2\r\nv2\r\n$2\r\nv1\r\n");
+        REQUIRE(handleHVALS(kv, {"otherhash"}) == "*0\r\n");
+    }
+
+    SECTION("HKEYS and HVALS bad args")
+    {
+        REQUIRE(handleHKEYS(kv, {}) == argumentError("1", 0));
+        REQUIRE(handleHKEYS(kv, {"myhash", "more"}) == argumentError("1", 2));
+        REQUIRE(handleHVALS(kv, {}) == argumentError("1", 0));
+        REQUIRE(handleHVALS(kv, {"myhash", "more"}) == argumentError("1", 2));
+    }
+}
+TEST_CASE("HMGET commands", "[hmget][command handler][unit]")
+{
+    KVStore kv(false);
+    kv.hset({"myhash", "f1", "v1", "f2", "v2"});
+
+    SECTION("HMGET expected")
+    {
+        REQUIRE(handleHMGET(kv, {"myhash", "f1", "f2", "f3"}) == "*3\r\n$2\r\nv1\r\n$2\r\nv2\r\n$-1\r\n");
+    }
+
+    SECTION("HMGET bad args")
+    {
+        REQUIRE(handleHMGET(kv, {"myhash"}) == argumentError("2 or more", 1));
+        REQUIRE(handleHMGET(kv, {}) == argumentError("2 or more", 0));
+    }
+}
+
 // TEST_CASE("Persistence", "[persistence][unit]")
 // {
 //
