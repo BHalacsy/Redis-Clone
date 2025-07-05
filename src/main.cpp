@@ -1,10 +1,27 @@
+#include <csignal>
 #include <iostream>
-#include "server.hpp"
 #include <string>
+#include "server.hpp"
 
-int main(){
-    Server server = Server(6379); //use default redis port
-    server.start();
+Server* redis = nullptr;
+
+void signalHandler(const int signal) {
+    if (redis)
+    {
+        std::cout << "Signal received: " << signal << ". Shutting down server..." << std::endl;
+        redis->stop(); // Gracefully stop the server
+        delete redis;
+    }
+    exit(signal);
+}
+
+int main() {
+    redis = new Server(6379); // Use default Redis port
+
+    std::signal(SIGINT, signalHandler); // Handle Ctrl+C
+    std::signal(SIGTERM, signalHandler); // Handle termination signal
+
+    redis->start();
 
     return 0;
 }

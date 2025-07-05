@@ -12,7 +12,7 @@
 #include "commands.hpp"
 
 
-Server::Server(const int port) : hostIP("127.0.0.1"), servPort(port), kvstore(true, "mydump") //TODO change dump to fitting value
+Server::Server(const int port) : servPort(port), running(true), hostIP("127.0.0.1"), kvstore(true, "dump.rdb") //TODO change dump to fitting value
 {
     std::cout << "Server created" << std::endl;
     this->sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -48,8 +48,8 @@ Server::~Server()
 
 [[noreturn]] void Server::start()
 {
-    //TODO for connection IMPLEMENT HANDSHAKE and thread poll
-    while (true)
+    //TODO for connection IMPLEMENT HANDSHAKE and thread pool
+    while (running)
     {
         sockaddr_in connectionAddress{};
         socklen_t addLen = sizeof(connectionAddress);
@@ -59,8 +59,14 @@ Server::~Server()
         std::thread worker(&Server::handleCommunication, this, connectionSock, connectionAddress);
         worker.detach();
     }
-    //TODO gracefully exit to hit server deconstructor
+    std::cout << "Server shutdown." << std::endl;
 }
+
+void Server::stop()
+{
+    running = false;
+}
+
 
 void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress)
 {
@@ -78,6 +84,7 @@ void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress
             //handle and return
             std::string resp = handleCommand(command);
             send(clientSock, resp.c_str(), resp.size(), 0);
+
         } catch (const std::exception& e) {
             std::cerr << "Error during communication: " << e.what() << std::endl;
             break;
@@ -99,7 +106,6 @@ std::string Server::handleCommand(const std::vector<std::string>& command) //may
 
     switch (strToCmd(command[0]))
     {
-        //TODO make commands be associated with Commands class emu thing
         case Commands::PING: return handlePING(arguments);
         case Commands::ECHO: return handleECHO(arguments);
         case Commands::SET: return handleSET(kvstore, arguments);

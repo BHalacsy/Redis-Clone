@@ -10,7 +10,7 @@
 #include "kvstore.hpp"
 #include "RESPtype.hpp"
 
-KVStore::KVStore(const bool persist, const std::string& fileName) : persistenceToggle(persist), persistenceFile((std::filesystem::path("data")/fileName).string())
+KVStore::KVStore(const bool persist, const std::string& fileName) : persistenceToggle(persist), persistenceFile((std::filesystem::path("data")/fileName).string()) //TODO maybe change to be nicer and more specific
 {
     if (persistenceToggle) loadFromDisk();
 }
@@ -55,14 +55,15 @@ std::optional<storeType> KVStore::getType(const std::string& k)
 void KVStore::loadFromDisk()
 {
     std::lock_guard lock(mtx);
-    std::cout << "hit load" << std::endl;
     try
     {
         std::ifstream ifs(persistenceFile, std::ios::binary);
+        std::cout << "Loading from file: " << persistenceFile << std::endl;
         if (!ifs) return;
         boost::archive::binary_iarchive bin(ifs);
         bin >> dict;
         removeExpAll();
+        ifs.close();
     }
     catch (std::exception& e) {
         std::cerr << "Fail in loadFromDisk(): " << e.what() << std::endl;
@@ -71,18 +72,22 @@ void KVStore::loadFromDisk()
 void KVStore::saveToDisk()
 {
     std::lock_guard lock(mtx);
-    std::cout << "hit save" << std::endl;
     try
     {
         std::filesystem::create_directories(std::filesystem::path(persistenceFile).parent_path());
         removeExpAll();
+
         std::ofstream ofs(persistenceFile, std::ios::binary);
-        //works but idk why, TODO figure out where file is actually
+        std::cout << "Saving to file: " << persistenceFile << std::endl;
+        //TODO change to overwrite
+        //TODO save every couple seconds and or operations
         if (!ofs) {
             throw std::runtime_error("Failed to open file for writing: " + persistenceFile);
         }
         boost::archive::binary_oarchive bin(ofs);
+        std::cout << "hit save" << std::endl;
         bin << dict;
+        ofs.close();
     }
     catch (std::exception& e) {
         std::cerr << "Fail in saveToDisk(): " << e.what() << std::endl;
