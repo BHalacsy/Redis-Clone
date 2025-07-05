@@ -42,7 +42,7 @@ add_executable(tests
         src/server.cpp
         src/commands.cpp
 )
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain Boost::serialization) #both catch and boost for tests
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain boost_serialization) #both catch and boost for tests
 
 include(Catch)
 catch_discover_tests(tests)
