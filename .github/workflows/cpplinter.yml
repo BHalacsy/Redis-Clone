@@ -1,29 +1,28 @@
-name: C++ Lint
+name: C++ CI with Linting
 
-on:
-  pull_request:
-    paths-ignore:
-      - third_party/**
-  push:
-    branches: [ main ]
-    paths-ignore:
-      - third_party/**
+on: [push, pull_request]
 
 jobs:
-  lint:
-    name: Run cpp-linter
+  build-and-lint:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - name: Run cpp-linter
-        uses: cpp-linter/cpp-linter-action@v2
-        with:
-          style: "llvm" # Or "google", "webkit", etc.
-          tidy-checks: "modernize-*,performance-*"
-          files-changed-only: false
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang-tidy
+
+      - name: Configure CMake
+        run: cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
+      - name: Run clang-tidy
+        run: |
+          cd build
+          run-clang-tidy -p .  # Checks all files
+          # OR for only changed files:
+          # run-clang-tidy 
 
 
