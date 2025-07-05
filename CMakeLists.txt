@@ -12,8 +12,8 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 add_subdirectory(third_party/Catch2)
 
 # Manually specify Boost paths
-set(BOOST_INCLUDEDIR "${CMAKE_SOURCE_DIR}/third_party/Boost/include")
-set(BOOST_LIBRARYDIR "${CMAKE_SOURCE_DIR}/third_party/Boost/lib")
+set(BOOST_INCLUDEDIR "/path/to/boost/include")
+set(BOOST_LIBRARYDIR "/path/to/boost/lib")
 
 include_directories(${BOOST_INCLUDEDIR})
 link_directories(${BOOST_LIBRARYDIR})
