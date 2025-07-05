@@ -1,7 +1,8 @@
-#include "kvstore.hpp"
-#include "RESPtype.hpp"
 #include <iostream>
 #include <mutex>
+
+#include "kvstore.hpp"
+#include "RESPtype.hpp"
 
 KVStore::KVStore(const bool persist, const std::string& fileName) : persistenceToggle(persist), persistenceFile(fileName)
 {

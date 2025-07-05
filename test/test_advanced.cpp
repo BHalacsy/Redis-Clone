@@ -1,10 +1,13 @@
 #define CATCH_CONFIG_MAIN
-#include <catch2/catch_all.hpp>
-#include <parser.hpp>
-#include <kvstore.hpp>
-#include <commands.hpp>
+
+#include <set>
 #include <thread>
-#include <util.hpp>
+
+#include "parser.hpp"
+#include "kvstore.hpp"
+#include "commands.hpp"
+#include "util.hpp"
+#include <catch2/catch_test_macros.hpp>
 
 
 TEST_CASE("Lpush and Rpush methods", "[lpush/rpush][kvstore method][unit]")

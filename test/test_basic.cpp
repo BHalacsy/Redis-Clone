@@ -1,10 +1,13 @@
 #define CATCH_CONFIG_MAIN
-#include <catch2/catch_all.hpp>
-#include <parser.hpp>
-#include <kvstore.hpp>
-#include <commands.hpp>
+
 #include <thread>
-#include <util.hpp>
+#include <catch2/catch_test_macros.hpp>
+
+
+#include "parser.hpp"
+#include "kvstore.hpp"
+#include "commands.hpp"
+#include "util.hpp"
 
 TEST_CASE("Set method", "[set][kvstore method][unit]")
 {

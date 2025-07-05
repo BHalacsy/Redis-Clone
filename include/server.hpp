@@ -1,10 +1,11 @@
 #pragma once
 
-#include <server.hpp>
 #include <netinet/in.h>
 #include <string>
 #include <vector>
-#include <kvstore.hpp>
+
+#include "kvstore.hpp"
+#include "server.hpp"
 
 class Server {
 public:

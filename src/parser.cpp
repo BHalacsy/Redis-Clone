@@ -2,8 +2,8 @@
 #include <string>
 #include <format>
 
-#include <parser.hpp>
-#include <util.hpp>
+#include "parser.hpp"
+#include "util.hpp"
 
 //TODO make sure pipelining works (check for incomplete commands)
 std::vector<std::string> parseRESP(const char* buffer, size_t len, size_t& offset)

@@ -6,9 +6,10 @@
 #include <arpa/inet.h>
 #include <cstring>
 #include <thread>
-#include <parser.hpp>
 #include <atomic>
 #include <chrono>
+
+#include "parser.hpp"
 
 std::atomic disconnect = false;
 

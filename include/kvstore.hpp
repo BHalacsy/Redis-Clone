@@ -1,11 +1,13 @@
 #pragma once
+
 #include <unordered_map>
 #include <chrono>
 #include <string>
-#include "RESPtype.hpp"
 #include <optional>
 #include <mutex>
 #include <vector>
+
+#include "RESPtype.hpp"
 
 class KVStore {
 public:
