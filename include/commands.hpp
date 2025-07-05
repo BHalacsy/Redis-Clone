@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include <kvstore.hpp>
+#include "kvstore.hpp"
 
 //commands for switching:
 
@@ -18,7 +18,7 @@ enum class Commands
     UNKNOWN
 };
 
-Commands strToCmd(const std::string& cmd);
+auto strToCmd(const std::string& cmd) -> Commands;
 
 // Basic commands
 std::string handlePING(const std::vector<std::string>& args);

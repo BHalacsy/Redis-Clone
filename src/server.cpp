@@ -5,11 +5,11 @@
 #include <thread>
 #include <format>
 
-#include <server.hpp>
-#include <parser.hpp>
-#include <kvstore.hpp>
-#include <util.hpp>
-#include <commands.hpp>
+#include "server.hpp"
+#include "parser.hpp"
+#include "kvstore.hpp"
+#include "util.hpp"
+#include "commands.hpp"
 
 
 Server::Server(const int port) : hostIP("127.0.0.1"), servPort(port), kvstore(true, "dump") //TODO change dump to fitting value
@@ -45,7 +45,7 @@ Server::~Server()
     close(this->sock);
 }
 
-void Server::start()
+[[noreturn]] void Server::start()
 {
     //TODO for connection IMPLEMENT HANDSHAKE and thread poll
     while (true)
