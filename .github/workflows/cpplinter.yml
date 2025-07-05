@@ -1,9 +1,12 @@
-name: C++ CI with Linting
+name: C++ Lint (Optimized)
 
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches: [ main ]
 
 jobs:
-  build-and-lint:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -13,16 +16,22 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang-tidy
+          sudo apt-get install -y clang-tidy-18
 
-      - name: Configure CMake
-        run: cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-
-      - name: Run clang-tidy
+      - name: Generate compile_commands.json
         run: |
-          cd build
-          run-clang-tidy -p .  # Checks all files
-          # OR for only changed files:
-          # run-clang-tidy 
+          cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
+      - name: Run clang-tidy (only your code)
+        run: |
+          find src/ test/ -name '*.cpp' -o -name '*.h' \
+            | grep -v 'third_party' \
+            | xargs clang-tidy-18 -p=build \
+                --extra-arg=-Iinclude/ \
+                --extra-arg=-std=c++20
 
+      - name: Optional - Run clang-format
+        run: |
+          find src/ test/ -name '*.cpp' -o -name '*.h' \
+            | grep -v 'third_party' \
+            | xargs clang-format --style=file --dry-run --Werror
