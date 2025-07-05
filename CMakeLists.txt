@@ -24,7 +24,8 @@ add_executable(redis_server
         src/parser.cpp
         src/commands.cpp
 )
-target_link_libraries(redis_server PRIVATE Boost::serialization Boost::system)
+
+target_link_libraries(redis_server PRIVATE boost_serialization boost_system)
 
 add_executable(redis_client
         src/client.cpp
