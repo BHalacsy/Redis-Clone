@@ -7,12 +7,13 @@ set(CMAKE_CXX_STANDARD 20)
 include(CTest)
 enable_testing()
 
-# Include your include and src dirs
+# Include your include src dirs and submods
 include_directories(${CMAKE_SOURCE_DIR}/include)
+add_subdirectory(third_party/Catch2)
 
-set(BOOST_ROOT "path/to/boost")
-set(BOOST_INCLUDEDIR "path/to/boost/include")
-set(BOOST_LIBRARYDIR "path/to/boost/lib")
+# Manually specify Boost paths
+set(BOOST_INCLUDEDIR "${CMAKE_SOURCE_DIR}/third_party/Boost/include")
+set(BOOST_LIBRARYDIR "${CMAKE_SOURCE_DIR}/third_party/Boost/lib")
 
 include_directories(${BOOST_INCLUDEDIR})
 link_directories(${BOOST_LIBRARYDIR})
@@ -32,8 +33,6 @@ add_executable(redis_client
         src/parser.cpp
 )
 
-add_subdirectory(third_party/Catch2)
-
 add_executable(tests
         test/test_basic.cpp
         test/test_advanced.cpp
@@ -42,7 +41,6 @@ add_executable(tests
         src/server.cpp
         src/commands.cpp
 )
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain boost_serialization) #both catch and boost for tests
-
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain boost_serialization)
 include(Catch)
 catch_discover_tests(tests)
