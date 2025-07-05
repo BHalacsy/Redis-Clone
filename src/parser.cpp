@@ -11,7 +11,6 @@ std::vector<std::string> parseRESP(const char* buffer, size_t len, size_t& offse
     if (offset >= len) throw std::runtime_error("Nothing to parse");
     const char datatype = buffer[offset];
     offset++;
-    std::cout << datatype << std::endl;
     switch (datatype)
     {
         case '+': return parseSimpleString(buffer, len, offset);
