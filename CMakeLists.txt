@@ -12,11 +12,11 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 add_subdirectory(third_party/Catch2)
 
 # Manually specify Boost paths
-set(BOOST_INCLUDEDIR "/usr/include/boost")
-set(BOOST_LIBRARYDIR "/usr/lib")
-
+set(BOOST_INCLUDEDIR "/usr/include")
 include_directories(${BOOST_INCLUDEDIR})
-link_directories(${BOOST_LIBRARYDIR})
+
+set(BOOST_SERIALIZATION_LIB "/usr/lib/x86_64-linux-gnu/libboost_serialization.so.1.83.0")
+set(BOOST_SYSTEM_LIB "/usr/lib/x86_64-linux-gnu/libboost_system.so.1.83.0")
 
 add_executable(redis_server
         src/main.cpp
@@ -26,7 +26,7 @@ add_executable(redis_server
         src/commands.cpp
 )
 
-target_link_libraries(redis_server PRIVATE boost_serialization boost_system)
+target_link_libraries(redis_server PRIVATE ${BOOST_SERIALIZATION_LIB} ${BOOST_SYSTEM_LIB})
 
 add_executable(redis_client
         src/client.cpp
@@ -41,6 +41,6 @@ add_executable(tests
         src/server.cpp
         src/commands.cpp
 )
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain boost_serialization)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain ${BOOST_SERIALIZATION_LIB})
 include(Catch)
 catch_discover_tests(tests)
