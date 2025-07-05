@@ -17,6 +17,8 @@ add_executable(redis_server
         src/parser.cpp
         src/commands.cpp
 )
+find_package(Boost 1.71 REQUIRED COMPONENTS serialization system)
+target_link_libraries(redis_server PRIVATE Boost::serialization Boost::system)
 
 add_executable(redis_client
         src/client.cpp
@@ -33,8 +35,7 @@ add_executable(tests
         src/server.cpp
         src/commands.cpp
 )
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain Boost::serialization) #both catch and boost for tests
 
-# Automatically discover tests using Catch2's CTest integration
 include(Catch)
 catch_discover_tests(tests)

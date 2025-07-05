@@ -1,17 +1,23 @@
 #include <iostream>
 #include <mutex>
+#include <fstream>
+#include <filesystem>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/serialization.hpp>
+#include <utility>
 
 #include "kvstore.hpp"
 #include "RESPtype.hpp"
 
-KVStore::KVStore(const bool persist, const std::string& fileName) : persistenceToggle(persist), persistenceFile(fileName)
+KVStore::KVStore(const bool persist, const std::string& fileName) : persistenceToggle(persist), persistenceFile((std::filesystem::path("data")/fileName).string())
 {
-    // if (persistenceToggle) loadFromDisk();
+    if (persistenceToggle) loadFromDisk();
 }
 
 KVStore::~KVStore()
 {
-    // if (persistenceToggle) saveToDisk();
+    if (persistenceToggle) saveToDisk();
 }
 
 //Helpers
@@ -23,22 +29,64 @@ void KVStore::removeExp(const std::string& k)
         expTable.erase(found);
     }
 }
-std::optional<storeType> KVStore::getType(const std::string& k) {
+void KVStore::removeExpAll()
+{
+    for (auto i = expTable.begin(); i != expTable.end();)
+    {
+        if (std::chrono::steady_clock::now() >= i->second)
+        {
+            dict.erase(i->first);
+            i = expTable.erase(i);
+        }
+        else
+        {
+            ++i;
+        }
+    }
+}
+std::optional<storeType> KVStore::getType(const std::string& k)
+{
     std::lock_guard lock(mtx);
     removeExp(k);
     const auto found = dict.find(k);
     if (found == dict.end()) return std::nullopt;
     return found->second.type;
 }
-void loadFromDisk()
+void KVStore::loadFromDisk()
 {
-//TODO
-    return;
+    std::lock_guard lock(mtx);
+    std::cout << "hit load" << std::endl;
+    try
+    {
+        std::ifstream ifs(persistenceFile, std::ios::binary);
+        if (!ifs) return;
+        boost::archive::binary_iarchive bin(ifs);
+        bin >> dict;
+        removeExpAll();
+    }
+    catch (std::exception& e) {
+        std::cerr << "Fail in loadFromDisk(): " << e.what() << std::endl;
+    }
 }
-void saveToDisk()
+void KVStore::saveToDisk()
 {
-//TODO
-    return;
+    std::lock_guard lock(mtx);
+    std::cout << "hit save" << std::endl;
+    try
+    {
+        std::filesystem::create_directories(std::filesystem::path(persistenceFile).parent_path());
+        removeExpAll();
+        std::ofstream ofs(persistenceFile, std::ios::binary);
+        //works but idk why, TODO figure out where file is actually
+        if (!ofs) {
+            throw std::runtime_error("Failed to open file for writing: " + persistenceFile);
+        }
+        boost::archive::binary_oarchive bin(ofs);
+        bin << dict;
+    }
+    catch (std::exception& e) {
+        std::cerr << "Fail in saveToDisk(): " << e.what() << std::endl;
+    }
 }
 
 //Basics
@@ -61,7 +109,7 @@ std::optional<std::string> KVStore::get(const std::string& k)
         removeExp(k);
         const auto found = dict.find(k);
         if (found == dict.end()) return std::nullopt;
-        return std::get<std::string>(found->second.value);
+        return boost::get<std::string>(found->second.value);
     } catch (std::exception& e) {
         std::cerr << "Fail in get: " << e.what() << std::endl;
         return std::nullopt;
@@ -110,7 +158,7 @@ std::optional<int> KVStore::incr(const std::string& k)
         return 1;
     }
 
-    try { ret = std::stoi(std::get<std::string>(found->second.value)); }
+    try { ret = std::stoi(boost::get<std::string>(found->second.value)); }
     catch (std::exception& e) {
         std::cerr << "Fail in incr: " << e.what() << std::endl;
         return std::nullopt;
@@ -132,7 +180,7 @@ std::optional<int> KVStore::dcr(const std::string& k)
         return -1;
     }
 
-    try{ ret = std::stoi(std::get<std::string>(found->second.value)); }
+    try{ ret = std::stoi(boost::get<std::string>(found->second.value)); }
     catch (std::exception& e) {
         std::cerr << "Fail in dcr: " << e.what() << std::endl;
         return std::nullopt;
@@ -192,7 +240,7 @@ int KVStore::lpush(const std::vector<std::string>& args)
             };
         return static_cast<int>(args.size() - 1);
     }
-    auto& val = std::get<std::deque<std::string>>(found->second.value);
+    auto& val = boost::get<std::deque<std::string>>(found->second.value);
 
     for (auto i = args.rbegin(); i != args.rend() - 1; ++i)
     {
@@ -214,7 +262,7 @@ int KVStore::rpush(const std::vector<std::string>& args)
             };
         return static_cast<int>(args.size() - 1);
     }
-    auto& val = std::get<std::deque<std::string>>(found->second.value);
+    auto& val = boost::get<std::deque<std::string>>(found->second.value);
 
     for (auto i = args.begin() + 1; i != args.end(); ++i)
     {
@@ -228,7 +276,7 @@ std::optional<std::string> KVStore::lpop(const std::string& k)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return std::nullopt;
-    auto& val = std::get<std::deque<std::string>>(found->second.value);
+    auto& val = boost::get<std::deque<std::string>>(found->second.value);
 
     if (val.empty()) return std::nullopt;
     std::string ret = val.front();
@@ -241,7 +289,7 @@ std::optional<std::string> KVStore::rpop(const std::string& k)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return std::nullopt;
-    auto& val = std::get<std::deque<std::string>>(found->second.value);
+    auto& val = boost::get<std::deque<std::string>>(found->second.value);
 
     if (val.empty()) return std::nullopt;
     std::string ret = val.back();
@@ -259,7 +307,7 @@ std::vector<std::optional<std::string>> KVStore::lrange(const std::string& k, co
         ret.emplace_back(std::nullopt);
         return ret;
     }
-    auto& val = std::get<std::deque<std::string>>(found->second.value);
+    auto& val = boost::get<std::deque<std::string>>(found->second.value);
 
     int trueStart = start < 0 ? static_cast<int>(val.size()) + start : start;
     int trueStop = stop < 0 ? static_cast<int>(val.size()) + stop : stop;
@@ -279,7 +327,7 @@ int KVStore::llen(const std::string& k)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return 0;
-    const auto& val = std::get<std::deque<std::string>>(found->second.value);
+    const auto& val = boost::get<std::deque<std::string>>(found->second.value);
 
     return static_cast<int>(val.size());
 }
@@ -289,7 +337,7 @@ std::optional<std::string> KVStore::lindex(const std::string& k, const int& inde
 
     const auto found = dict.find(k);
     if (found == dict.end()) return std::nullopt;
-    auto& val = std::get<std::deque<std::string>>(found->second.value);
+    auto& val = boost::get<std::deque<std::string>>(found->second.value);
     if (static_cast<int>(val.size()) <= index) return std::nullopt;
     return val.at(index);
 }
@@ -299,7 +347,7 @@ bool KVStore::lset(const std::string& k, const int& index, const std::string& v)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return false;
-    auto& val = std::get<std::deque<std::string>>(found->second.value);
+    auto& val = boost::get<std::deque<std::string>>(found->second.value);
 
     if (static_cast<int>(val.size()) <= index || index < 0) return false;
     val.at(index) = v;
@@ -311,7 +359,7 @@ int KVStore::lrem(const std::string& k, const int& count, const std::string& v)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return 0;
-    auto& val = std::get<std::deque<std::string>>(found->second.value);
+    auto& val = boost::get<std::deque<std::string>>(found->second.value);
     int removed = 0;
 
     if (count > 0)
@@ -367,7 +415,7 @@ int KVStore::sadd(const std::vector<std::string>& args)
                 };
             return static_cast<int>(args.size() - 1);
         }
-        auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+        auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
         int added = 0;
 
 
@@ -388,7 +436,7 @@ int KVStore::srem(const std::vector<std::string>& args)
     const auto found = dict.find(key);
     if (found == dict.end()) return 0;
 
-    auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+    auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
     int removed = 0;
 
     for (auto i = args.begin() + 1; i != args.end(); ++i)
@@ -406,7 +454,7 @@ bool KVStore::sismember(const std::string& k, const std::string& v)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return false;
-    const auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+    const auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
 
     return val.contains(v);
 }
@@ -417,7 +465,7 @@ std::vector<std::optional<std::string>> KVStore::smembers(const std::string& k)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return ret;
-    const auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+    const auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
 
     for (const auto& i : val)
     {
@@ -431,7 +479,7 @@ int KVStore::scard(const std::string& k)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return 0;
-    const auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+    const auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
 
     return static_cast<int>(val.size());
 }
@@ -443,7 +491,7 @@ std::vector<std::optional<std::string>> KVStore::spop(const std::string& k, cons
     const auto found = dict.find(k);
     if (found == dict.end() || count == 0) return ret;
 
-    auto& val = std::get<std::unordered_set<std::string>>(found->second.value);
+    auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
     for (int i = 0; i < count && !val.empty(); ++i)
     {
         //TODO make randomized pop
@@ -476,7 +524,7 @@ int KVStore::hset(const std::vector<std::string>& args)
         dict[key] = RESPValue{storeType::HASH, newMap};
         return added;
     }
-    auto& val = std::get<std::unordered_map<std::string, std::string>>(found->second.value);
+    auto& val = boost::get<std::unordered_map<std::string, std::string>>(found->second.value);
 
     for (auto i = 1; i < args.size(); i += 2)
     {
@@ -491,7 +539,7 @@ std::optional<std::string> KVStore::hget(const std::string& k, const std::string
 
     const auto found = dict.find(k);
     if (found == dict.end()) return std::nullopt;
-    auto& val = std::get<std::unordered_map<std::string,std::string>>(found->second.value);
+    auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
 
     const auto foundField = val.find(f);
     if (foundField == val.end()) return std::nullopt;
@@ -505,7 +553,7 @@ int KVStore::hdel(const std::vector<std::string>& args)
 
     const auto found = dict.find(key);
     if (found == dict.end()) return 0;
-    auto& val = std::get<std::unordered_map<std::string,std::string>>(found->second.value);
+    auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
     int removed = 0;
 
     for (auto it = args.begin() + 1; it != args.end(); ++it)
@@ -523,7 +571,7 @@ bool KVStore::hexists(const std::string& k, const std::string& f)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return false;
-    auto& val = std::get<std::unordered_map<std::string,std::string>>(found->second.value);
+    auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
 
     if (const auto foundField = val.find(f); foundField == val.end()) return false;
 
@@ -535,7 +583,7 @@ int KVStore::hlen(const std::string& k)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return 0;
-    const auto& val = std::get<std::unordered_map<std::string,std::string>>(found->second.value);
+    const auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
 
     return val.size();
 }
@@ -546,7 +594,7 @@ std::vector<std::optional<std::string>> KVStore::hkeys(const std::string& k)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return ret;
-    auto& val = std::get<std::unordered_map<std::string,std::string>>(found->second.value);
+    auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
 
     for (const auto& i : val)
     {
@@ -562,7 +610,7 @@ std::vector<std::optional<std::string>> KVStore::hvals(const std::string& k)
 
     const auto found = dict.find(k);
     if (found == dict.end()) return ret;
-    const auto& val = std::get<std::unordered_map<std::string,std::string>>(found->second.value);
+    const auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
 
     for (const auto& i : val)
     {
@@ -582,7 +630,7 @@ std::vector<std::optional<std::string>> KVStore::hmget(const std::vector<std::st
         ret.resize(args.size() - 1, std::nullopt); //bit messy but will do?
         return ret;
     }
-    auto& val = std::get<std::unordered_map<std::string, std::string>>(found->second.value);
+    auto& val = boost::get<std::unordered_map<std::string, std::string>>(found->second.value);
 
     for (auto i = 1; i < args.size(); ++i)
     {

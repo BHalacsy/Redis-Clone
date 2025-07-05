@@ -680,22 +680,23 @@ TEST_CASE("HMGET commands", "[hmget][command handler][unit]")
     }
 }
 
-// TEST_CASE("Persistence", "[persistence][unit]")
-// {
-//
-//     const std::string filename = "test.rdb";
-//     {
-//         KVStore kv(true, filename);
-//         kv.set("a", "1");
-//         kv.lpush({"b", "1"});
-//         kv.hset("c", "d", "1");
-//     }
-//     //moves to outer scope and destroys the kv
-//     {
-//         KVStore kv(true, filename);
-//         REQUIRE(kv.get("a") == "1");
-//         REQUIRE(kv.lpop("b") == "1");
-//         REQUIRE(kv.hget("c", "d") == "1");
-//     }
-//     std::remove(filename.c_str()); //not sure about this
-// }
+TEST_CASE("Persistence", "[persistence][unit]")
+{
+
+    const std::string filename = "test.bin";
+    {
+        KVStore kv(true, filename);
+        kv.set("a", "1");
+        kv.lpush({"b", "1"});
+        kv.hset({"c", "d", "1"});
+    }
+    //moves to outer scope and destroys the kv
+    std::cout << "hit persist test transfer" << std::endl;
+    {
+        KVStore kv(true, filename);
+        REQUIRE(kv.get("a") == "1");
+        REQUIRE(kv.lpop("b") == "1");
+        REQUIRE(kv.hget("c", "d") == "1");
+    }
+    std::remove(filename.c_str()); //not sure about this
+}

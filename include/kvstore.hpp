@@ -11,10 +11,11 @@
 
 class KVStore {
 public:
-    KVStore(bool persist, const std::string& fileName = "");
+    KVStore(bool persist, const std::string&  fileName = "dump");
     ~KVStore();
 
     void removeExp(const std::string& k);
+    void removeExpAll();
     std::optional<storeType> getType(const std::string& k);
     void loadFromDisk();
     void saveToDisk();

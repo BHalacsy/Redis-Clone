@@ -12,7 +12,7 @@
 #include "commands.hpp"
 
 
-Server::Server(const int port) : hostIP("127.0.0.1"), servPort(port), kvstore(true, "dump") //TODO change dump to fitting value
+Server::Server(const int port) : hostIP("127.0.0.1"), servPort(port), kvstore(true, "mydump") //TODO change dump to fitting value
 {
     std::cout << "Server created" << std::endl;
     this->sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -42,6 +42,7 @@ Server::~Server()
     //deconstruction here
     //disconnect
     std::cout << "Server shutting down..." << std::endl;
+    kvstore.saveToDisk();
     close(this->sock);
 }
 
@@ -58,6 +59,7 @@ Server::~Server()
         std::thread worker(&Server::handleCommunication, this, connectionSock, connectionAddress);
         worker.detach();
     }
+    //TODO gracefully exit to hit server deconstructor
 }
 
 void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress)
