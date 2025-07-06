@@ -7,6 +7,7 @@
 
 #include "config.h"
 #include "kvstore.hpp"
+#include "pubsub.hpp"
 
 class Server {
 public:
@@ -21,8 +22,11 @@ public:
 private:
 	int sock;
 	int servPort = PORT_NUM;
+	std::string hostIP = HOST_IP;
+
 	bool running = true;
 	boost::asio::thread_pool pool;
-	std::string hostIP = HOST_IP;
+
+	PubSub pubsubManager;
 	KVStore kvstore;
 };

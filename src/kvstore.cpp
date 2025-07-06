@@ -32,7 +32,6 @@ std::optional<storeType> KVStore::getType(const std::string& k)
 //Persistence
 void KVStore::loadFromDisk()
 {
-    std::lock_guard lock(mtx); //TODO remove lock and use tbb
     try
     {
         snapshotManager.load(dict);
@@ -44,7 +43,6 @@ void KVStore::loadFromDisk()
 }
 void KVStore::saveToDisk()
 {
-    std::lock_guard lock(mtx); //TODO remove lock and use tbb
     expirationManager.removeAllExp(dict);
     try
     {

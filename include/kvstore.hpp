@@ -17,12 +17,10 @@ public:
     explicit KVStore(bool persist, const std::string& fileName = SAVEFILE_PATH);
     ~KVStore();
 
-    void removeExp(const std::string& k);
-    void removeExpAll();
     std::optional<storeType> getType(const std::string& k);
+
     void loadFromDisk();
     void saveToDisk();
-
 
     bool set(const std::string& k, const std::string& v);
     std::optional<std::string> get(const std::string& k);
@@ -68,5 +66,4 @@ private:
     Expiration expirationManager;
     Snapshot snapshotManager;
 
-    std::mutex mtx; //used before tbb
 };

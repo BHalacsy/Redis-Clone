@@ -45,6 +45,13 @@ Commands strToCmd(const std::string& cmd)
     if (cmd == "HKEYS") return Commands::HKEYS;
     if (cmd == "HVALS") return Commands::HVALS;
     if (cmd == "HMGET") return Commands::HMGET;
+    if (cmd == "MULTI") return Commands::MULTI;
+    if (cmd == "EXEC") return Commands::EXEC;
+    if (cmd == "DISCARD") return Commands::DISCARD;
+    if (cmd == "WATCH") return Commands::WATCH;
+    if (cmd == "PUBLISH") return Commands::PUBLISH;
+    if (cmd == "SUBSCRIBE") return Commands::SUBSCRIBE;
+    if (cmd == "UNSUBSCRIBE") return Commands::UNSUBSCRIBE;
 
     return Commands::UNKNOWN;
 }
@@ -545,6 +552,44 @@ std::string handleHMGET(KVStore& kvstore, const std::vector<std::string>& args)
     }
     return resp;
 }
+
+//Transaction commands
+// std::string handleMULTI(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//
+// }
+// std::string handleEXEC(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//
+// }
+// std::string handleDISCARD(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//
+// }
+// std::string handleWATCH(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//
+// }
+//
+// //Pub/Sub commands
+// std::string handlePUBLISH(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//     if (args.size() != 2)
+//     {
+//         std::cerr << "Command arguments malformed" << std::endl;
+//         return argumentError("2", args.size());
+//     }
+//
+// }
+// std::string handleSUBSCRIBE(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//
+// }
+// std::string handleUNSUBSCRIBE(KVStore& kvstore, const std::vector<std::string>& args)
+// {
+//
+// }
+
 
 //TODO pub/sub
 //TODO advanced data structures and commands (lists,sets,hashs,sortedset)

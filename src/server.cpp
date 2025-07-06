@@ -13,6 +13,8 @@
 #include "kvstore.hpp"
 #include "util.hpp"
 #include "commands.hpp"
+#include "pubsub.hpp"
+#include "session.hpp"
 
 
 Server::Server() : pool(POOL_SIZE), kvstore(true)
@@ -83,9 +85,15 @@ void Server::stop()
 void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress)
 {
     std::cout << "New connection" << std::endl;
+
+    auto session = new Session{
+        .clientSock = clientSock,
+        .clientAddress = inet_ntoa(clientAddress.sin_addr)
+    };
+
     char buffer[4096];
-    std::string splitCommand;
     std::string resp;
+
     while (true)
     {
         try
@@ -95,10 +103,10 @@ void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress
             if (bytesRead <= 0) break;
 
             //append to any halved commands, parse all in pipeline return cmd, get not processed commands for next recv
-            splitCommand.append(buffer, bytesRead);
+            session->partialCommand.append(buffer, bytesRead);
             size_t offset = 0;
-            std::vector<std::vector<std::string>> commands = parseRESPPipeline(splitCommand.c_str(), splitCommand.size(), offset);
-            splitCommand = splitCommand.substr(offset);
+            std::vector<std::vector<std::string>> commands = parseRESPPipeline(session->partialCommand.c_str(), session->partialCommand.size(), offset);
+            session->partialCommand = session->partialCommand.substr(offset);
 
             //handle and send
             for (const auto& command : commands)
@@ -112,7 +120,9 @@ void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress
         }
     }
     //TODO remove from sub channels
+
     close(clientSock);
+    delete session;
 }
 
 
@@ -164,6 +174,13 @@ std::string Server::handleCommand(const std::vector<std::string>& command) //may
         case Commands::HKEYS: return handleHKEYS(kvstore, arguments);
         case Commands::HVALS: return handleHVALS(kvstore, arguments);
         case Commands::HMGET: return handleHMGET(kvstore, arguments);
+        // case Commands::MULTI: return handleMULTI(kvstore, arguments);
+        // case Commands::EXEC: return handleEXEC(kvstore, arguments);
+        // case Commands::DISCARD: return handleDISCARD(kvstore, arguments);
+        // case Commands::WATCH: return handleWATCH(kvstore, arguments);
+        // case Commands::PUBLISH: return handlePUBLISH(kvstore, arguments);
+        // case Commands::SUBSCRIBE: return handleSUBSCRIBE(kvstore, arguments);
+        // case Commands::UNSUBSCRIBE: return handleUNSUBSCRIBE(kvstore, arguments);
         default:
             std::cerr << "Command not handled: " << command[0] << std::endl;
             return std::format("-ERR unknown command '{}'", command[0]);//send error

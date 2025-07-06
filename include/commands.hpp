@@ -15,6 +15,7 @@ enum class Commands
     SADD, SREM, SISMEMBER, SMEMBERS, SCARD, SPOP,
     HSET, HGET, HDEL, HEXISTS, HLEN, HKEYS, HVALS, HMGET, //HGETALL??
     MULTI, EXEC, DISCARD, WATCH, //TODO implement later
+    PUBLISH, SUBSCRIBE, UNSUBSCRIBE,
     UNKNOWN
 };
 
@@ -63,4 +64,15 @@ std::string handleHLEN(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleHKEYS(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleHVALS(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleHMGET(KVStore& kvstore, const std::vector<std::string>& args);
+
+//Transaction commands
+std::string handleMULTI(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleEXEC(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleDISCARD(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleWATCH(KVStore& kvstore, const std::vector<std::string>& args);
+
+//Pub/Sub commands
+std::string handlePUBLISH(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleSUBSCRIBE(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleUNSUBSCRIBE(KVStore& kvstore, const std::vector<std::string>& args);
 
