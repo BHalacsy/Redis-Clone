@@ -21,13 +21,6 @@ int Expiration::getTTL(const std::string& key)
     return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(dur).count());
 }
 
-
-bool Expiration::inExpiry(const std::string& key) //NOT SURE IF NEEDED YET
-{
-    std::lock_guard lock(mtx);
-    return expTable.contains(key);
-}
-
 void Expiration::removeAllExp(std::unordered_map<std::string, RESPValue>& dict)
 {
     std::lock_guard lock(mtx);

@@ -68,5 +68,5 @@ private:
     Expiration expirationManager;
     Snapshot snapshotManager;
 
-    std::mutex mtx; //thread lock for expTable
+    std::mutex mtx; //used before tbb
 };
