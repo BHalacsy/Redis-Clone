@@ -19,35 +19,14 @@ KVStore::~KVStore()
 }
 
 //Helpers
-void KVStore::removeExp(const std::string& k)
-{
-    if (const auto found = expTable.find(k); found != expTable.end() && std::chrono::steady_clock::now() >= found->second)
-    {
-        dict.erase(k);
-        expTable.erase(found);
-    }
-}
-void KVStore::removeExpAll()
-{
-    for (auto i = expTable.begin(); i != expTable.end();)
-    {
-        if (std::chrono::steady_clock::now() >= i->second)
-        {
-            dict.erase(i->first);
-            i = expTable.erase(i);
-        }
-        else
-        {
-            ++i;
-        }
-    }
-}
 std::optional<storeType> KVStore::getType(const std::string& k)
 {
     std::lock_guard lock(mtx);
-    removeExp(k);
+    expirationManager.removeKeyExp(k, dict);
+
     const auto found = dict.find(k);
     if (found == dict.end()) return std::nullopt;
+
     return found->second.type;
 }
 
@@ -58,7 +37,7 @@ void KVStore::loadFromDisk()
     try
     {
         snapshotManager.load(dict);
-        removeExpAll();
+        expirationManager.removeAllExp(dict);
     }
     catch (std::exception& e) {
         std::cerr << "Fail in loadFromDisk(): " << e.what() << std::endl;
@@ -67,7 +46,7 @@ void KVStore::loadFromDisk()
 void KVStore::saveToDisk()
 {
     std::lock_guard lock(mtx);
-    removeExpAll();
+    expirationManager.removeAllExp(dict);
     try
     {
         snapshotManager.save(dict);
@@ -85,7 +64,7 @@ bool KVStore::set(const std::string& k, const std::string& v)
     auto val = RESPValue{storeType::STR, v};
     if (dict.contains(k)) dict[k] = val;
     else dict.insert({k,val});
-    expTable.erase(k);
+    expirationManager.erase(k);
     return true;
 }
 std::optional<std::string> KVStore::get(const std::string& k)
@@ -94,7 +73,7 @@ std::optional<std::string> KVStore::get(const std::string& k)
 
     try
     {
-        removeExp(k);
+        expirationManager.removeKeyExp(k, dict);
         const auto found = dict.find(k);
         if (found == dict.end()) return std::nullopt;
         return boost::get<std::string>(found->second.value);
@@ -109,7 +88,7 @@ int KVStore::del(const std::vector<std::string>& args)
     int deleted = 0;
     for (const auto& k : args)
     {
-
+        expirationManager.erase(k);
         if (dict.contains(k))
         {
             dict.erase(k);
@@ -125,7 +104,7 @@ int KVStore::exists(const std::vector<std::string>& args)
     int exist = 0;
     for (const auto& k : args)
     {
-        removeExp(k);
+        expirationManager.removeKeyExp(k, dict);
         if (dict.contains(k))
         {
             exist++;
@@ -137,7 +116,7 @@ std::optional<int> KVStore::incr(const std::string& k)
 {
     std::lock_guard lock(mtx);
 
-    removeExp(k);
+    expirationManager.removeKeyExp(k, dict);
     const auto found = dict.find(k);
     int ret = 0;
     if (found == dict.end())
@@ -160,7 +139,8 @@ std::optional<int> KVStore::incr(const std::string& k)
 std::optional<int> KVStore::dcr(const std::string& k)
 {
     std::lock_guard lock(mtx);
-    removeExp(k);
+    expirationManager.removeKeyExp(k, dict);
+
     const auto found = dict.find(k);
     int ret = 0;
     if (found == dict.end())
@@ -185,24 +165,22 @@ bool KVStore::expire(const std::string& k, const int s)
     std::lock_guard lock(mtx);
 
     if (!dict.contains(k)) return false;
-    expTable[k] = std::chrono::steady_clock::now() + std::chrono::seconds(s);
+    expirationManager.setExpiry(k, s);
     return true;
 }
 int KVStore::ttl(const std::string& k)
 {
     std::lock_guard lock(mtx);
 
-    removeExp(k);
+    expirationManager.removeKeyExp(k, dict);
     if (!dict.contains(k)) return -2;
-    if (!expTable.contains(k)) return -1;
-    const auto duration = expTable.at(k) - std::chrono::steady_clock::now();
-    return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(duration).count());
+    return expirationManager.getTTL(k);
 }
 void KVStore::flushall()
 {
     std::lock_guard lock(mtx);
 
-    expTable.clear();
+    expirationManager.clear();
     dict.clear();
     snapshotManager.clear();
 }
@@ -237,6 +215,7 @@ int KVStore::lpush(const std::vector<std::string>& args)
     {
         val.push_front(*i);
     }
+    expirationManager.erase(key);
     return static_cast<int>(val.size());
 }
 int KVStore::rpush(const std::vector<std::string>& args)
@@ -259,11 +238,14 @@ int KVStore::rpush(const std::vector<std::string>& args)
     {
         val.push_back(*i);
     }
+    expirationManager.erase(key);
     return static_cast<int>(val.size());
 }
 std::optional<std::string> KVStore::lpop(const std::string& k)
 {
     std::lock_guard lock(mtx);
+
+    expirationManager.removeKeyExp(k, dict);
 
     const auto found = dict.find(k);
     if (found == dict.end()) return std::nullopt;
@@ -278,6 +260,8 @@ std::optional<std::string> KVStore::rpop(const std::string& k)
 {
     std::lock_guard lock(mtx);
 
+    expirationManager.removeKeyExp(k, dict);
+
     const auto found = dict.find(k);
     if (found == dict.end()) return std::nullopt;
     auto& val = boost::get<std::deque<std::string>>(found->second.value);
@@ -291,6 +275,8 @@ std::vector<std::optional<std::string>> KVStore::lrange(const std::string& k, co
 {
     std::lock_guard lock(mtx);
     std::vector<std::optional<std::string>> ret;
+
+    expirationManager.removeKeyExp(k, dict);
 
     const auto found = dict.find(k);
     if (found == dict.end())
@@ -316,6 +302,8 @@ int KVStore::llen(const std::string& k)
 {
     std::lock_guard lock(mtx);
 
+    expirationManager.removeKeyExp(k, dict);
+
     const auto found = dict.find(k);
     if (found == dict.end()) return 0;
     const auto& val = boost::get<std::deque<std::string>>(found->second.value);
@@ -326,6 +314,8 @@ std::optional<std::string> KVStore::lindex(const std::string& k, const int& inde
 {
     std::lock_guard lock(mtx);
 
+    expirationManager.removeKeyExp(k, dict);
+
     const auto found = dict.find(k);
     if (found == dict.end()) return std::nullopt;
     auto& val = boost::get<std::deque<std::string>>(found->second.value);
@@ -335,6 +325,8 @@ std::optional<std::string> KVStore::lindex(const std::string& k, const int& inde
 bool KVStore::lset(const std::string& k, const int& index, const std::string& v)
 {
     std::lock_guard lock(mtx);
+
+    expirationManager.removeKeyExp(k, dict);
 
     const auto found = dict.find(k);
     if (found == dict.end()) return false;
@@ -347,6 +339,8 @@ bool KVStore::lset(const std::string& k, const int& index, const std::string& v)
 int KVStore::lrem(const std::string& k, const int& count, const std::string& v)
 {
     std::lock_guard lock(mtx);
+
+    expirationManager.removeKeyExp(k, dict);
 
     const auto found = dict.find(k);
     if (found == dict.end()) return 0;
@@ -397,6 +391,9 @@ int KVStore::sadd(const std::vector<std::string>& args)
 {
         std::lock_guard lock(mtx);
         const std::string& key = args[0];
+
+        expirationManager.removeKeyExp(key, dict);
+
         const auto found = dict.find(key);
         if (found == dict.end())
         {
@@ -424,6 +421,8 @@ int KVStore::srem(const std::vector<std::string>& args)
     std::lock_guard lock(mtx);
     const std::string& key = args[0];
 
+    expirationManager.removeKeyExp(key, dict);
+
     const auto found = dict.find(key);
     if (found == dict.end()) return 0;
 
@@ -443,6 +442,8 @@ bool KVStore::sismember(const std::string& k, const std::string& v)
 {
     std::lock_guard lock(mtx);
 
+    expirationManager.removeKeyExp(k, dict);
+
     const auto found = dict.find(k);
     if (found == dict.end()) return false;
     const auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
@@ -453,6 +454,8 @@ std::vector<std::optional<std::string>> KVStore::smembers(const std::string& k)
 {
     std::lock_guard lock(mtx);
     std::vector<std::optional<std::string>> ret{};
+
+    expirationManager.removeKeyExp(k, dict);
 
     const auto found = dict.find(k);
     if (found == dict.end()) return ret;
@@ -468,6 +471,8 @@ int KVStore::scard(const std::string& k)
 {
     std::lock_guard lock(mtx);
 
+    expirationManager.removeKeyExp(k, dict);
+
     const auto found = dict.find(k);
     if (found == dict.end()) return 0;
     const auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
@@ -478,6 +483,8 @@ std::vector<std::optional<std::string>> KVStore::spop(const std::string& k, cons
 {
     std::lock_guard lock(mtx);
     std::vector<std::optional<std::string>> ret{};
+
+    expirationManager.removeKeyExp(k, dict);
 
     const auto found = dict.find(k);
     if (found == dict.end() || count == 0) return ret;
@@ -501,7 +508,9 @@ int KVStore::hset(const std::vector<std::string>& args)
     const std::string& key = args[0];
     int added = 0;
 
-    if (args.size() < 3 || args.size() % 2 == 0) return false;
+    expirationManager.removeKeyExp(key, dict);
+
+    if (args.size() < 3 || args.size() % 2 == 0) return false; //just to be cautious, but handle already handles this
 
     const auto found = dict.find(key);
     if (found == dict.end())
@@ -522,11 +531,14 @@ int KVStore::hset(const std::vector<std::string>& args)
         if (!val.contains(args[i])) added++;
         val[args[i]] = args[i + 1];
     }
+    expirationManager.erase(key);
     return added;
 }
 std::optional<std::string> KVStore::hget(const std::string& k, const std::string& f)
 {
     std::lock_guard lock(mtx);
+
+    expirationManager.removeKeyExp(k, dict);
 
     const auto found = dict.find(k);
     if (found == dict.end()) return std::nullopt;
@@ -541,6 +553,8 @@ int KVStore::hdel(const std::vector<std::string>& args)
 {
     std::lock_guard lock(mtx);
     const std::string& key = args[0];
+
+    expirationManager.removeKeyExp(key, dict);
 
     const auto found = dict.find(key);
     if (found == dict.end()) return 0;
@@ -560,6 +574,8 @@ bool KVStore::hexists(const std::string& k, const std::string& f)
 {
     std::lock_guard lock(mtx);
 
+    expirationManager.removeKeyExp(k, dict);
+
     const auto found = dict.find(k);
     if (found == dict.end()) return false;
     auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
@@ -572,6 +588,8 @@ int KVStore::hlen(const std::string& k)
 {
     std::lock_guard lock(mtx);
 
+    expirationManager.removeKeyExp(k, dict);
+
     const auto found = dict.find(k);
     if (found == dict.end()) return 0;
     const auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
@@ -582,6 +600,8 @@ std::vector<std::optional<std::string>> KVStore::hkeys(const std::string& k)
 {
     std::lock_guard lock(mtx);
     std::vector<std::optional<std::string>> ret{};
+
+    expirationManager.removeKeyExp(k, dict);
 
     const auto found = dict.find(k);
     if (found == dict.end()) return ret;
@@ -599,6 +619,8 @@ std::vector<std::optional<std::string>> KVStore::hvals(const std::string& k)
     std::lock_guard lock(mtx);
     std::vector<std::optional<std::string>> ret{};
 
+    expirationManager.removeKeyExp(k, dict);
+
     const auto found = dict.find(k);
     if (found == dict.end()) return ret;
     const auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
@@ -614,6 +636,8 @@ std::vector<std::optional<std::string>> KVStore::hmget(const std::vector<std::st
     std::lock_guard lock(mtx);
     const std::string& key = args[0];
     std::vector<std::optional<std::string>> ret{};
+
+    expirationManager.removeKeyExp(key, dict);
 
     const auto found = dict.find(key);
     if (found == dict.end())

@@ -25,6 +25,7 @@ add_executable(redis_server
         src/parser.cpp
         src/commands.cpp
         src/snapshot.cpp
+        src/expire.cpp
 )
 
 target_link_libraries(redis_server PRIVATE ${BOOST_SERIALIZATION_LIB} ${BOOST_SYSTEM_LIB})
@@ -42,6 +43,7 @@ add_executable(tests
         src/server.cpp
         src/commands.cpp
         src/snapshot.cpp
+        src/expire.cpp
 )
 target_link_libraries(tests PRIVATE Catch2::Catch2WithMain ${BOOST_SERIALIZATION_LIB})
 include(Catch)

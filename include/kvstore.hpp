@@ -10,6 +10,7 @@
 #include "config.h"
 #include "RESPtype.hpp"
 #include "snapshot.hpp"
+#include "expire.hpp"
 
 class KVStore {
 public:
@@ -62,9 +63,9 @@ public:
 
 
 private:
-    std::unordered_map<std::string,RESPValue> dict; //main store
-    std::unordered_map<std::string,std::chrono::steady_clock::time_point> expTable; //expiry table
     bool persistenceToggle; //toggle to not persist when testing
+    std::unordered_map<std::string,RESPValue> dict; //main store
+    Expiration expirationManager;
     Snapshot snapshotManager;
 
     std::mutex mtx; //thread lock for expTable
