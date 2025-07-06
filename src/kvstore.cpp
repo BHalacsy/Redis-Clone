@@ -2,15 +2,13 @@
 #include <mutex>
 #include <fstream>
 #include <filesystem>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
 #include <boost/variant.hpp>
 #include <utility>
 
 #include "kvstore.hpp"
 #include "RESPtype.hpp"
 
-KVStore::KVStore(const bool persist, const std::string& fileName) : persistenceToggle(persist), persistenceFile((std::filesystem::path("data")/fileName).string()) //TODO maybe change to be nicer and more specific
+KVStore::KVStore(const bool persist, const std::string& fileName) : persistenceToggle(persist), snapshotManager(fileName) //TODO maybe change to be nicer and more specific
 {
     if (persistenceToggle) loadFromDisk();
 }
@@ -59,12 +57,8 @@ void KVStore::loadFromDisk()
     std::lock_guard lock(mtx);
     try
     {
-        std::ifstream readFromFile(persistenceFile, std::ios::binary);
-        if (!readFromFile) return;
-        boost::archive::binary_iarchive binFile(readFromFile);
-        binFile >> dict;
+        snapshotManager.load(dict);
         removeExpAll();
-        readFromFile.close();
     }
     catch (std::exception& e) {
         std::cerr << "Fail in loadFromDisk(): " << e.what() << std::endl;
@@ -76,12 +70,7 @@ void KVStore::saveToDisk()
     removeExpAll();
     try
     {
-        std::filesystem::create_directories(std::filesystem::path(persistenceFile).parent_path());
-        std::ofstream writeToFile(persistenceFile, std::ios::binary | std::ios::trunc);
-        std::cout << "Saving to file: " << persistenceFile << std::endl;
-        boost::archive::binary_oarchive binFile(writeToFile);
-        binFile << dict;
-        writeToFile.close();
+        snapshotManager.save(dict);
     }
     catch (std::exception& e) {
         std::cerr << "Fail in saveToDisk(): " << e.what() << std::endl;
@@ -215,12 +204,13 @@ void KVStore::flushall()
 
     expTable.clear();
     dict.clear();
-    std::ofstream clearDisk(persistenceFile, std::ios::binary | std::ios::trunc);
+    snapshotManager.clear();
 }
 std::vector<std::optional<std::string>> KVStore::mget(const std::vector<std::string>& args)
 {
     std::vector<std::optional<std::string>> ret;
-    for (const auto& i : args) {
+    for (const auto& i : args)
+    { //TODO change so not use get? locking?
         ret.push_back(get(i));
     }
     return ret;
@@ -586,7 +576,7 @@ int KVStore::hlen(const std::string& k)
     if (found == dict.end()) return 0;
     const auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
 
-    return val.size();
+    return static_cast<int>(val.size());
 }
 std::vector<std::optional<std::string>> KVStore::hkeys(const std::string& k)
 {
