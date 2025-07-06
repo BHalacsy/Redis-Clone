@@ -6,6 +6,24 @@
 #include "util.hpp"
 
 //TODO make sure pipelining works (check for incomplete commands)
+std::vector<std::vector<std::string>> parseRESPPipeline(const char* buffer, const size_t len, size_t& offset)
+{
+    std::vector<std::vector<std::string>> commands;
+    while (offset < len)
+    {
+        try
+        {
+            commands.push_back(parseRESP(buffer, len, offset));
+        }
+        catch (const std::runtime_error& e)
+        {
+            break;
+        }
+    }
+    return commands;
+}
+
+
 std::vector<std::string> parseRESP(const char* buffer, size_t len, size_t& offset)
 {
     if (offset >= len) throw std::runtime_error("Nothing to parse");
@@ -57,7 +75,7 @@ std::vector<std::string> parseArray(const char* buffer, const size_t len, size_t
     std::vector<std::string> ret;
     for (ssize_t i = 0; i < arrayLen; i++)
     {
-        if (offset >= len) throw std::runtime_error("Incomplete array element");
+        if (offset >= len || buffer[offset] == '*') throw std::runtime_error("Incomplete array element");
         std::vector<std::string> element = parseRESP(buffer, len, offset);
         if (!element.empty()) ret.push_back(element[0]);
     }

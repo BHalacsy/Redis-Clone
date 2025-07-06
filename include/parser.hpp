@@ -5,7 +5,7 @@
 
 #include "RESPtype.hpp"
 
-
+std::vector<std::vector<std::string>> parseRESPPipeline(const char* buffer, size_t len, size_t& offset);
 std::vector<std::string> parseRESP(const char* buffer, size_t len, size_t& offset);
 std::vector<std::string> parseSimpleString(const char* buffer, size_t len, size_t& offset);
 std::vector<std::string> parseError(const char* buffer, size_t len, size_t& offset);

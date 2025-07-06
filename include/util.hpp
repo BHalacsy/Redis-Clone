@@ -8,6 +8,8 @@
 #include <format>
 #include <fstream>
 #include <unordered_map>
+#include <sys/sysinfo.h>
+#include <unistd.h>
 #include <tbb/concurrent_hash_map.h>
 
 #include "kvstore.hpp"
@@ -99,4 +101,32 @@ inline tbb::concurrent_hash_map<std::string, RESPValue> convertToConcurrentMap(c
         retMap.insert({key, val});
     }
     return retMap;
+}
+
+inline unsigned int getMemoryLimit()
+{
+    struct sysinfo info;
+    if (sysinfo(&info) == 0)
+    {
+        // Return total RAM in bytes
+        return static_cast<unsigned int>(info.totalram * info.mem_unit);
+    }
+    return 0;
+}
+
+inline unsigned int getMemoryUsage()
+{
+    std::ifstream statm("/proc/self/statm");
+    long pages = 0;
+    if (statm >> pages)
+    {
+        long page_size = sysconf(_SC_PAGESIZE);
+        return static_cast<unsigned int>(pages * page_size); // in bytes
+    }
+    return 0;
+}
+
+inline unsigned int getCores()
+{
+    return std::thread::hardware_concurrency();
 }

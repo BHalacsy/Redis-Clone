@@ -84,25 +84,34 @@ void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress
 {
     std::cout << "New connection" << std::endl;
     char buffer[4096];
+    std::string splitCommand;
+    std::string resp;
     while (true)
     {
         try
         {
-            //receive and parse
+            //receive
             const ssize_t bytesRead = recv(clientSock, &buffer, sizeof(buffer), 0);
             if (bytesRead <= 0) break;
+
+            //append to any halved commands, parse all in pipeline return cmd, get not processed commands for next recv
+            splitCommand.append(buffer, bytesRead);
             size_t offset = 0;
-            std::vector<std::string> command = parseRESP(buffer, bytesRead, offset);
+            std::vector<std::vector<std::string>> commands = parseRESPPipeline(splitCommand.c_str(), splitCommand.size(), offset);
+            splitCommand = splitCommand.substr(offset);
 
             //handle and send
-            std::string resp = handleCommand(command);
+            for (const auto& command : commands)
+            {
+                resp += handleCommand(command);
+            }
             send(clientSock, resp.c_str(), resp.size(), 0);
-
         } catch (const std::exception& e) {
             std::cerr << "Error during communication: " << e.what() << std::endl;
             break;
         }
     }
+    //TODO remove from sub channels
     close(clientSock);
 }
 
