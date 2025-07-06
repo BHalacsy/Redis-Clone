@@ -2,8 +2,9 @@
 #include <mutex>
 #include <fstream>
 #include <filesystem>
-#include <boost/variant.hpp>
 #include <utility>
+#include <boost/variant.hpp>
+#include <tbb/concurrent_hash_map.h>
 
 #include "kvstore.hpp"
 #include "RESPtype.hpp"
@@ -21,19 +22,17 @@ KVStore::~KVStore()
 //Helpers
 std::optional<storeType> KVStore::getType(const std::string& k)
 {
-    std::lock_guard lock(mtx);
+    tbb::concurrent_hash_map<std::string, RESPValue>::const_accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return std::nullopt;
-
-    return found->second.type;
+    if (!dict.find(accessor, k)) return std::nullopt;
+    return accessor->second.type;
 }
 
 //Persistence
 void KVStore::loadFromDisk()
 {
-    std::lock_guard lock(mtx);
+    std::lock_guard lock(mtx); //TODO remove lock and use tbb
     try
     {
         snapshotManager.load(dict);
@@ -45,7 +44,7 @@ void KVStore::loadFromDisk()
 }
 void KVStore::saveToDisk()
 {
-    std::lock_guard lock(mtx);
+    std::lock_guard lock(mtx); //TODO remove lock and use tbb
     expirationManager.removeAllExp(dict);
     try
     {
@@ -59,39 +58,39 @@ void KVStore::saveToDisk()
 //Basics
 bool KVStore::set(const std::string& k, const std::string& v)
 {
-    std::lock_guard lock(mtx);
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
 
-    auto val = RESPValue{storeType::STR, v};
-    if (dict.contains(k)) dict[k] = val;
-    else dict.insert({k,val});
+    const auto val = RESPValue{storeType::STR, v};
+    dict.insert(accessor, k); //TODO change to follow others
+    accessor->second = val;
+
     expirationManager.erase(k);
     return true;
 }
 std::optional<std::string> KVStore::get(const std::string& k)
 {
-    std::lock_guard lock(mtx);
-
     try
     {
+        tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
         expirationManager.removeKeyExp(k, dict);
-        const auto found = dict.find(k);
-        if (found == dict.end()) return std::nullopt;
-        return boost::get<std::string>(found->second.value);
-    } catch (std::exception& e) {
+
+        if (!dict.find(accessor, k)) return std::nullopt;
+        return boost::get<std::string>(accessor->second.value);
+    }
+    catch (std::exception& e) {
         std::cerr << "Fail in get: " << e.what() << std::endl;
         return std::nullopt;
     }
 }
 int KVStore::del(const std::vector<std::string>& args)
 {
-    std::lock_guard lock(mtx);
     int deleted = 0;
     for (const auto& k : args)
     {
         expirationManager.erase(k);
-        if (dict.contains(k))
+        if (tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor; dict.find(accessor, k))
         {
-            dict.erase(k);
+            dict.erase(accessor);
             deleted++;
         }
     }
@@ -99,13 +98,11 @@ int KVStore::del(const std::vector<std::string>& args)
 }
 int KVStore::exists(const std::vector<std::string>& args)
 {
-    std::lock_guard<std::mutex> lock(mtx);
-
     int exist = 0;
     for (const auto& k : args)
     {
         expirationManager.removeKeyExp(k, dict);
-        if (dict.contains(k))
+        if (tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor; dict.find(accessor, k))
         {
             exist++;
         }
@@ -114,17 +111,17 @@ int KVStore::exists(const std::vector<std::string>& args)
 }
 std::optional<int> KVStore::incr(const std::string& k)
 {
-    std::lock_guard lock(mtx);
-
-    expirationManager.removeKeyExp(k, dict);
-    const auto found = dict.find(k);
     int ret = 0;
-    if (found == dict.end())
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
+    expirationManager.removeKeyExp(k, dict);
+
+    if (!dict.find(accessor, k))
     {
-        dict[k] = RESPValue{storeType::STR, "1"};
+        dict.insert({k,RESPValue{storeType::STR, "1"}});
         return 1;
     }
-    const auto val = boost::get<std::string>(found->second.value);
+    //else
+    const auto val = boost::get<std::string>(accessor->second.value);
 
     try{ ret = std::stoi(val); }
     catch (std::exception& e) {
@@ -133,22 +130,22 @@ std::optional<int> KVStore::incr(const std::string& k)
     }
 
     ret++;
-    found->second.value = std::string(std::to_string(ret));
+    accessor->second.value = std::string(std::to_string(ret));
     return ret;
 }
 std::optional<int> KVStore::dcr(const std::string& k)
 {
-    std::lock_guard lock(mtx);
+    int ret = 0;
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    int ret = 0;
-    if (found == dict.end())
+    if (!dict.find(accessor, k))
     {
-        dict[k] = RESPValue{storeType::STR, "-1"};
+        dict.insert({k,RESPValue{storeType::STR, "-1"}});
         return -1;
     }
-    const auto val = boost::get<std::string>(found->second.value);
+    //else
+    const auto val = boost::get<std::string>(accessor->second.value);
 
     try{ ret = std::stoi(val); }
     catch (std::exception& e) {
@@ -157,29 +154,23 @@ std::optional<int> KVStore::dcr(const std::string& k)
     }
 
     ret--;
-    found->second.value = std::string(std::to_string(ret));
+    accessor->second.value = std::string(std::to_string(ret));
     return ret;
 }
 bool KVStore::expire(const std::string& k, const int s)
 {
-    std::lock_guard lock(mtx);
-
-    if (!dict.contains(k)) return false;
+    if (tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor; !dict.find(accessor, k)) return false;
     expirationManager.setExpiry(k, s);
     return true;
 }
 int KVStore::ttl(const std::string& k)
 {
-    std::lock_guard lock(mtx);
-
     expirationManager.removeKeyExp(k, dict);
-    if (!dict.contains(k)) return -2;
+    if (tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor; !dict.find(accessor, k)) return -2;
     return expirationManager.getTTL(k);
 }
 void KVStore::flushall()
 {
-    std::lock_guard lock(mtx);
-
     expirationManager.clear();
     dict.clear();
     snapshotManager.clear();
@@ -188,7 +179,8 @@ std::vector<std::optional<std::string>> KVStore::mget(const std::vector<std::str
 {
     std::vector<std::optional<std::string>> ret;
     for (const auto& i : args)
-    { //TODO change so not use get? locking?
+    {
+        expirationManager.removeKeyExp(i, dict); //TODO maybe fix to not use .get method
         ret.push_back(get(i));
     }
     return ret;
@@ -197,19 +189,19 @@ std::vector<std::optional<std::string>> KVStore::mget(const std::vector<std::str
 //Lists
 int KVStore::lpush(const std::vector<std::string>& args)
 {
-    std::lock_guard lock(mtx);
     const std::string& key = args[0];
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
 
-    const auto found = dict.find(key);
-    if (found == dict.end())
+    if (!dict.find(accessor, key))
     {
-        dict[key] = RESPValue{
+        dict.insert({key,RESPValue{
             storeType::LIST,
             std::deque<std::string>(args.rbegin(), args.rend() - 1)
-            };
+            }});
         return static_cast<int>(args.size() - 1);
     }
-    auto& val = boost::get<std::deque<std::string>>(found->second.value);
+    //else
+    auto& val = boost::get<std::deque<std::string>>(accessor->second.value);
 
     for (auto i = args.rbegin(); i != args.rend() - 1; ++i)
     {
@@ -220,19 +212,19 @@ int KVStore::lpush(const std::vector<std::string>& args)
 }
 int KVStore::rpush(const std::vector<std::string>& args)
 {
-    std::lock_guard lock(mtx);
-
     const std::string& key = args[0];
-    const auto found = dict.find(key);
-    if (found == dict.end())
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
+
+    if (!dict.find(accessor, key))
     {
-        dict[key] = RESPValue{
+        dict.insert({key, RESPValue{
             storeType::LIST,
             std::deque<std::string>(args.begin() + 1, args.end())
-            };
+            }});
         return static_cast<int>(args.size() - 1);
     }
-    auto& val = boost::get<std::deque<std::string>>(found->second.value);
+    //else
+    auto& val = boost::get<std::deque<std::string>>(accessor->second.value);
 
     for (auto i = args.begin() + 1; i != args.end(); ++i)
     {
@@ -243,48 +235,57 @@ int KVStore::rpush(const std::vector<std::string>& args)
 }
 std::optional<std::string> KVStore::lpop(const std::string& k)
 {
-    std::lock_guard lock(mtx);
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return std::nullopt;
-    auto& val = boost::get<std::deque<std::string>>(found->second.value);
+    if (!dict.find(accessor, k)) return std::nullopt;
+    auto& val = boost::get<std::deque<std::string>>(accessor->second.value);
 
     if (val.empty()) return std::nullopt;
     std::string ret = val.front();
+
     val.pop_front();
+    if (val.empty())
+    {
+        expirationManager.erase(k);
+        dict.erase(accessor);
+    }
+
     return ret;
 }
 std::optional<std::string> KVStore::rpop(const std::string& k)
 {
-    std::lock_guard lock(mtx);
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return std::nullopt;
-    auto& val = boost::get<std::deque<std::string>>(found->second.value);
+    if (!dict.find(accessor, k)) return std::nullopt;
+    auto& val = boost::get<std::deque<std::string>>(accessor->second.value);
 
     if (val.empty()) return std::nullopt;
     std::string ret = val.back();
+
     val.pop_back();
+    if (val.empty())
+    {
+        expirationManager.erase(k);
+        dict.erase(accessor);
+    }
+
     return ret;
 }
 std::vector<std::optional<std::string>> KVStore::lrange(const std::string& k, const int& start, const int& stop)
 {
-    std::lock_guard lock(mtx);
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     std::vector<std::optional<std::string>> ret;
-
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end())
+    if (!dict.find(accessor, k))
     {
         ret.emplace_back(std::nullopt);
         return ret;
     }
-    auto& val = boost::get<std::deque<std::string>>(found->second.value);
+    //else
+    auto& val = boost::get<std::deque<std::string>>(accessor->second.value);
 
     int trueStart = start < 0 ? static_cast<int>(val.size()) + start : start;
     int trueStop = stop < 0 ? static_cast<int>(val.size()) + stop : stop;
@@ -300,37 +301,32 @@ std::vector<std::optional<std::string>> KVStore::lrange(const std::string& k, co
 }
 int KVStore::llen(const std::string& k)
 {
-    std::lock_guard lock(mtx);
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return 0;
-    const auto& val = boost::get<std::deque<std::string>>(found->second.value);
+    if (!dict.find(accessor, k)) return 0;
+    const auto& val = boost::get<std::deque<std::string>>(accessor->second.value);
 
     return static_cast<int>(val.size());
 }
 std::optional<std::string> KVStore::lindex(const std::string& k, const int& index)
 {
-    std::lock_guard lock(mtx);
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return std::nullopt;
-    auto& val = boost::get<std::deque<std::string>>(found->second.value);
+    if (!dict.find(accessor, k)) return std::nullopt;
+    auto& val = boost::get<std::deque<std::string>>(accessor->second.value);
+
     if (static_cast<int>(val.size()) <= index) return std::nullopt;
     return val.at(index);
 }
 bool KVStore::lset(const std::string& k, const int& index, const std::string& v)
 {
-    std::lock_guard lock(mtx);
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return false;
-    auto& val = boost::get<std::deque<std::string>>(found->second.value);
+    if (!dict.find(accessor, k)) return false;
+    auto& val = boost::get<std::deque<std::string>>(accessor->second.value);
 
     if (static_cast<int>(val.size()) <= index || index < 0) return false;
     val.at(index) = v;
@@ -338,14 +334,12 @@ bool KVStore::lset(const std::string& k, const int& index, const std::string& v)
 }
 int KVStore::lrem(const std::string& k, const int& count, const std::string& v)
 {
-    std::lock_guard lock(mtx);
-
+    int removed = 0;
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return 0;
-    auto& val = boost::get<std::deque<std::string>>(found->second.value);
-    int removed = 0;
+    if (!dict.find(accessor, k)) return 0;
+    auto& val = boost::get<std::deque<std::string>>(accessor->second.value);
 
     if (count > 0)
     {
@@ -389,45 +383,41 @@ int KVStore::lrem(const std::string& k, const int& count, const std::string& v)
 //Sets
 int KVStore::sadd(const std::vector<std::string>& args)
 {
-        std::lock_guard lock(mtx);
-        const std::string& key = args[0];
+    int added = 0;
+    const std::string& key = args[0];
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
+    expirationManager.removeKeyExp(key, dict);
 
-        expirationManager.removeKeyExp(key, dict);
+    if (!dict.find(accessor, key))
+    {
+        dict.insert({key,RESPValue{
+            storeType::SET,
+            std::unordered_set<std::string>(args.begin() + 1, args.end())
+            }});
+        return static_cast<int>(args.size() - 1);
+    }
+    //else
+    auto& val = boost::get<std::unordered_set<std::string>>(accessor->second.value);
 
-        const auto found = dict.find(key);
-        if (found == dict.end())
+    for (auto i = args.begin() + 1; i != args.end(); ++i)
+    {
+        if (val.insert(*i).second) //pair second bool if new
         {
-            dict[key] = RESPValue{
-                storeType::SET,
-                std::unordered_set<std::string>(args.begin() + 1, args.end())
-                };
-            return static_cast<int>(args.size() - 1);
+            added++;
         }
-        auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
-        int added = 0;
+    }
 
-
-        for (auto i = args.begin() + 1; i != args.end(); ++i)
-        {
-            if (val.insert(*i).second) //pair second bool if new
-            {
-                added++;
-            }
-        }
-        return added;
+    return added;
 }
 int KVStore::srem(const std::vector<std::string>& args)
 {
-    std::lock_guard lock(mtx);
+    int removed = 0;
     const std::string& key = args[0];
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(key, dict);
 
-    const auto found = dict.find(key);
-    if (found == dict.end()) return 0;
-
-    auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
-    int removed = 0;
+    if (!dict.find(accessor, key)) return removed;
+    auto& val = boost::get<std::unordered_set<std::string>>(accessor->second.value);
 
     for (auto i = args.begin() + 1; i != args.end(); ++i)
     {
@@ -436,60 +426,54 @@ int KVStore::srem(const std::vector<std::string>& args)
             removed++;
         }
     }
+
     return removed;
 }
 bool KVStore::sismember(const std::string& k, const std::string& v)
 {
-    std::lock_guard lock(mtx);
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return false;
-    const auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
+    if (!dict.find(accessor, k)) return false;
+    const auto& val = boost::get<std::unordered_set<std::string>>(accessor->second.value);
 
     return val.contains(v);
 }
 std::vector<std::optional<std::string>> KVStore::smembers(const std::string& k)
 {
-    std::lock_guard lock(mtx);
     std::vector<std::optional<std::string>> ret{};
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return ret;
-    const auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
+    if (!dict.find(accessor, k)) return ret;
+    const auto& val = boost::get<std::unordered_set<std::string>>(accessor->second.value);
 
     for (const auto& i : val)
     {
         ret.emplace_back(i);
     }
+
     return ret;
 }
 int KVStore::scard(const std::string& k)
 {
-    std::lock_guard lock(mtx);
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return 0;
-    const auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
+    if (!dict.find(accessor, k)) return 0;
+    const auto& val = boost::get<std::unordered_set<std::string>>(accessor->second.value);
 
     return static_cast<int>(val.size());
 }
 std::vector<std::optional<std::string>> KVStore::spop(const std::string& k, const int& count)
 {
-    std::lock_guard lock(mtx);
     std::vector<std::optional<std::string>> ret{};
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end() || count == 0) return ret;
+    if (!dict.find(accessor, k) || count == 0) return ret;
+    auto& val = boost::get<std::unordered_set<std::string>>(accessor->second.value);
 
-    auto& val = boost::get<std::unordered_set<std::string>>(found->second.value);
     for (int i = 0; i < count && !val.empty(); ++i)
     {
         //TODO make randomized pop
@@ -497,6 +481,7 @@ std::vector<std::optional<std::string>> KVStore::spop(const std::string& k, cons
         ret.emplace_back(*it);
         val.erase(it);
     }
+
     return ret;
 }
 
@@ -504,16 +489,14 @@ std::vector<std::optional<std::string>> KVStore::spop(const std::string& k, cons
 int KVStore::hset(const std::vector<std::string>& args)
 {
 
-    std::lock_guard lock(mtx);
-    const std::string& key = args[0];
     int added = 0;
-
+    const std::string& key = args[0];
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(key, dict);
 
     if (args.size() < 3 || args.size() % 2 == 0) return false; //just to be cautious, but handle already handles this
 
-    const auto found = dict.find(key);
-    if (found == dict.end())
+    if (!dict.find(accessor, key))
     {
         std::unordered_map<std::string, std::string> newMap;
         for (auto i = 1; i < args.size(); i += 2)
@@ -521,28 +504,28 @@ int KVStore::hset(const std::vector<std::string>& args)
             newMap[args[i]] = args[i + 1];
             added++;
         }
-        dict[key] = RESPValue{storeType::HASH, newMap};
+        dict.insert({key,RESPValue{storeType::HASH, newMap}});
         return added;
     }
-    auto& val = boost::get<std::unordered_map<std::string, std::string>>(found->second.value);
+    //else
+    auto& val = boost::get<std::unordered_map<std::string, std::string>>(accessor->second.value);
 
     for (auto i = 1; i < args.size(); i += 2)
     {
         if (!val.contains(args[i])) added++;
         val[args[i]] = args[i + 1];
     }
+
     expirationManager.erase(key);
     return added;
 }
 std::optional<std::string> KVStore::hget(const std::string& k, const std::string& f)
 {
-    std::lock_guard lock(mtx);
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return std::nullopt;
-    auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
+    if (!dict.find(accessor, k)) return std::nullopt;
+    auto& val = boost::get<std::unordered_map<std::string,std::string>>(accessor->second.value);
 
     const auto foundField = val.find(f);
     if (foundField == val.end()) return std::nullopt;
@@ -551,15 +534,14 @@ std::optional<std::string> KVStore::hget(const std::string& k, const std::string
 }
 int KVStore::hdel(const std::vector<std::string>& args)
 {
-    std::lock_guard lock(mtx);
-    const std::string& key = args[0];
 
+    int removed = 0;
+    const std::string& key = args[0];
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(key, dict);
 
-    const auto found = dict.find(key);
-    if (found == dict.end()) return 0;
-    auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
-    int removed = 0;
+    if (!dict.find(accessor, key)) return removed;
+    auto& val = boost::get<std::unordered_map<std::string,std::string>>(accessor->second.value);
 
     for (auto it = args.begin() + 1; it != args.end(); ++it)
     {
@@ -572,13 +554,11 @@ int KVStore::hdel(const std::vector<std::string>& args)
 }
 bool KVStore::hexists(const std::string& k, const std::string& f)
 {
-    std::lock_guard lock(mtx);
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return false;
-    auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
+    if (!dict.find(accessor, k)) return false;
+    auto& val = boost::get<std::unordered_map<std::string,std::string>>(accessor->second.value);
 
     if (const auto foundField = val.find(f); foundField == val.end()) return false;
 
@@ -586,26 +566,22 @@ bool KVStore::hexists(const std::string& k, const std::string& f)
 }
 int KVStore::hlen(const std::string& k)
 {
-    std::lock_guard lock(mtx);
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return 0;
-    const auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
+    if (!dict.find(accessor, k)) return 0;
+    const auto& val = boost::get<std::unordered_map<std::string,std::string>>(accessor->second.value);
 
     return static_cast<int>(val.size());
 }
 std::vector<std::optional<std::string>> KVStore::hkeys(const std::string& k)
 {
-    std::lock_guard lock(mtx);
     std::vector<std::optional<std::string>> ret{};
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return ret;
-    auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
+    if (!dict.find(accessor, k)) return ret;
+    auto& val = boost::get<std::unordered_map<std::string,std::string>>(accessor->second.value);
 
     for (const auto& i : val)
     {
@@ -616,14 +592,12 @@ std::vector<std::optional<std::string>> KVStore::hkeys(const std::string& k)
 }
 std::vector<std::optional<std::string>> KVStore::hvals(const std::string& k)
 {
-    std::lock_guard lock(mtx);
     std::vector<std::optional<std::string>> ret{};
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(k, dict);
 
-    const auto found = dict.find(k);
-    if (found == dict.end()) return ret;
-    const auto& val = boost::get<std::unordered_map<std::string,std::string>>(found->second.value);
+    if (!dict.find(accessor, k)) return ret;
+    const auto& val = boost::get<std::unordered_map<std::string,std::string>>(accessor->second.value);
 
     for (const auto& i : val)
     {
@@ -633,19 +607,18 @@ std::vector<std::optional<std::string>> KVStore::hvals(const std::string& k)
 }
 std::vector<std::optional<std::string>> KVStore::hmget(const std::vector<std::string>& args)
 {
-    std::lock_guard lock(mtx);
     const std::string& key = args[0];
     std::vector<std::optional<std::string>> ret{};
-
+    tbb::concurrent_hash_map<std::string, RESPValue>::accessor accessor;
     expirationManager.removeKeyExp(key, dict);
 
-    const auto found = dict.find(key);
-    if (found == dict.end())
+    if (!dict.find(accessor, key))
     {
         ret.resize(args.size() - 1, std::nullopt); //a bit messy but will do?
         return ret;
     }
-    auto& val = boost::get<std::unordered_map<std::string, std::string>>(found->second.value);
+    //else
+    auto& val = boost::get<std::unordered_map<std::string, std::string>>(accessor->second.value);
 
     for (auto i = 1; i < args.size(); ++i)
     {

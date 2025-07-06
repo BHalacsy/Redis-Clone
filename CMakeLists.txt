@@ -49,6 +49,6 @@ add_executable(tests
         src/snapshot.cpp
         src/expire.cpp
 )
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain ${BOOST_SERIALIZATION_LIB})
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain ${BOOST_SERIALIZATION_LIB} ${TBB_LIB})
 include(Catch)
 catch_discover_tests(tests)

@@ -1,11 +1,11 @@
 #pragma once
 
 #include <unordered_map>
-#include <chrono>
 #include <string>
 #include <optional>
 #include <mutex>
 #include <vector>
+#include <tbb/concurrent_hash_map.h>
 
 #include "config.h"
 #include "RESPtype.hpp"
@@ -64,7 +64,7 @@ public:
 
 private:
     bool persistenceToggle; //toggle to not persist when testing
-    std::unordered_map<std::string,RESPValue> dict; //main store
+    tbb::concurrent_hash_map<std::string,RESPValue> dict; //main store
     Expiration expirationManager;
     Snapshot snapshotManager;
 

@@ -7,6 +7,8 @@
 #include <vector>
 #include <format>
 #include <fstream>
+#include <unordered_map>
+#include <tbb/concurrent_hash_map.h>
 
 #include "kvstore.hpp"
 
@@ -76,4 +78,25 @@ inline std::optional<std::string> checkTypeError(KVStore& kvstore, const std::st
     auto type = kvstore.getType(key);
     if (type && *type != expected) return "-ERR wrong type\r\n";
     return std::nullopt;
+}
+
+//For serialization (to work with Boost)
+inline std::unordered_map<std::string, RESPValue> convertToUnorderedMap(const tbb::concurrent_hash_map<std::string, RESPValue>& conMap)
+{
+    std::unordered_map<std::string, RESPValue> retMap;
+    for (const auto & [key, val] : conMap)
+    {
+        retMap[key] = val;
+    }
+    return retMap;
+}
+
+inline tbb::concurrent_hash_map<std::string, RESPValue> convertToConcurrentMap(const std::unordered_map<std::string, RESPValue>& conMap)
+{
+    tbb::concurrent_hash_map<std::string, RESPValue> retMap;
+    for (const auto & [key, val] : conMap)
+    {
+        retMap.insert({key, val});
+    }
+    return retMap;
 }

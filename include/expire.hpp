@@ -2,6 +2,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <tbb/concurrent_hash_map.h>
 #include <chrono>
 #include <mutex>
 
@@ -11,8 +12,8 @@ class Expiration{
 public: //TODO clean unused methods and order them
     void setExpiry(const std::string& key, int seconds);
     int getTTL(const std::string& key);
-    void removeAllExp(std::unordered_map<std::string, RESPValue>& dict);
-    void removeKeyExp(const std::string& key, std::unordered_map<std::string, RESPValue>& dict);
+    void removeAllExp(tbb::concurrent_hash_map<std::string, RESPValue>& dict);
+    void removeKeyExp(const std::string& key, tbb::concurrent_hash_map<std::string, RESPValue>& dict);
     void clear();
     void erase(const std::string& key);
 

@@ -3,7 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <chrono>
-#include <cmath>
+#include <tbb/concurrent_hash_map.h>
 #include <mutex>
 
 void Expiration::setExpiry(const std::string& key, int seconds)
@@ -21,7 +21,7 @@ int Expiration::getTTL(const std::string& key)
     return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(dur).count());
 }
 
-void Expiration::removeAllExp(std::unordered_map<std::string, RESPValue>& dict)
+void Expiration::removeAllExp(tbb::concurrent_hash_map<std::string, RESPValue>& dict) //TODO USE ACCESSOR for erase
 {
     std::lock_guard lock(mtx);
     for (auto i = expTable.begin(); i != expTable.end();)
@@ -35,7 +35,7 @@ void Expiration::removeAllExp(std::unordered_map<std::string, RESPValue>& dict)
     }
 }
 
-void Expiration::removeKeyExp(const std::string& key, std::unordered_map<std::string, RESPValue>& dict)
+void Expiration::removeKeyExp(const std::string& key, tbb::concurrent_hash_map<std::string, RESPValue>& dict) //TODO USE ACCESSOR for erase
 {
     std::lock_guard lock(mtx);
     if (const auto found = expTable.find(key); found != expTable.end() && std::chrono::steady_clock::now() >= found->second)
