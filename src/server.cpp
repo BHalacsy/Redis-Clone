@@ -92,10 +92,10 @@ void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress
     };
 
     char buffer[4096];
-    std::string resp;
 
     while (true)
     {
+        std::string resp;
         try
         {
             //receive
@@ -126,7 +126,7 @@ void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress
 }
 
 
-std::string Server::handleCommand(const std::vector<std::string>& command, Session* session) //maybe change to handle resp
+std::string Server::handleCommand(const std::vector<std::string>& command, Session* session)
 {
     const std::vector arguments(command.begin() + 1, command.end());
 
@@ -135,8 +135,14 @@ std::string Server::handleCommand(const std::vector<std::string>& command, Sessi
         std::cerr << "Command empty" << std::endl;
         return "-ERR command line empty\r\n";
     }
+    const Commands cmd = strToCmd(command[0]);
+    if (session->transActive && cmd != Commands::EXEC && cmd != Commands::DISCARD)
+    {
+        session->transQueue.push_back(command);
+        return "+QUEUED\r\n";
+    }
 
-    switch (strToCmd(command[0]))
+    switch (cmd)
     {
         case Commands::CONFIG: return handleCONFIG(arguments);
         case Commands::PING: return handlePING(arguments);
@@ -174,13 +180,31 @@ std::string Server::handleCommand(const std::vector<std::string>& command, Sessi
         case Commands::HKEYS: return handleHKEYS(kvstore, arguments);
         case Commands::HVALS: return handleHVALS(kvstore, arguments);
         case Commands::HMGET: return handleHMGET(kvstore, arguments);
-        // case Commands::MULTI: return handleMULTI(kvstore, arguments);
-        // case Commands::EXEC: return handleEXEC(kvstore, arguments);
-        // case Commands::DISCARD: return handleDISCARD(kvstore, arguments);
-        // case Commands::WATCH: return handleWATCH(kvstore, arguments);
         case Commands::PUBLISH: return handlePUBLISH(pubsubManager, arguments);
         case Commands::SUBSCRIBE: return handleSUBSCRIBE(pubsubManager, arguments, session->clientSock);
         case Commands::UNSUBSCRIBE: return handleUNSUBSCRIBE(pubsubManager, arguments, session->clientSock);
+        case Commands::MULTI: return handleMULTI(session, arguments);
+        case Commands::DISCARD: return handleDISCARD(session, arguments);
+        case Commands::EXEC:
+            if (!session->transActive)
+            {
+                return "-ERR EXEC without MULTI\r\n";
+            }
+            {
+                const auto queue = std::move(session->transQueue);
+
+                session->transActive = false; //Must so EXEC-ed commands are not queued again
+                session->transQueue.clear();
+
+                std::string resp = "*" + std::to_string(queue.size()) + "\r\n";
+
+                for (const auto& i : queue)
+                {
+                    assert(strToCmd(i[0]) != Commands::EXEC && "EXEC should never be in transaction queue!");
+                    resp += handleCommand(i, session);
+                }
+                return resp;
+            };
         default:
             std::cerr << "Command not handled: " << command[0] << std::endl;
             return std::format("-ERR unknown command '{}'", command[0]);//send error

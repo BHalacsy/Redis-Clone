@@ -399,7 +399,7 @@ int KVStore::sadd(const std::vector<std::string>& args)
 
     for (auto i = args.begin() + 1; i != args.end(); ++i)
     {
-        if (val.insert(*i).second) //pair second bool if new
+        if (val.insert(*i).second)
         {
             added++;
         }

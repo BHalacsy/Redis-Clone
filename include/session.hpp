@@ -2,6 +2,7 @@
 #include <string>
 #include <unordered_set>
 
+
 struct Session {
     //Basic client info
     int clientSock;
@@ -11,8 +12,8 @@ struct Session {
     std::string partialCommand;
 
     //Transaction necessities
+    bool transActive = false;
+    std::vector<std::vector<std::string>> transQueue;
 
-
-
-    //Authentication here if needed
+    //TODO Authentication here in future
 };

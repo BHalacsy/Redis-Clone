@@ -3,6 +3,7 @@
 #include <string>
 #include "kvstore.hpp"
 #include "pubsub.hpp"
+#include "session.hpp"
 
 //commands for switching:
 
@@ -15,8 +16,8 @@ enum class Commands
     LPUSH, RPUSH, LPOP, RPOP, LRANGE, LLEN, LINDEX, LSET, LREM, //LMOVE?
     SADD, SREM, SISMEMBER, SMEMBERS, SCARD, SPOP,
     HSET, HGET, HDEL, HEXISTS, HLEN, HKEYS, HVALS, HMGET, //HGETALL??
-    MULTI, EXEC, DISCARD, WATCH,
     PUBLISH, SUBSCRIBE, UNSUBSCRIBE,
+    MULTI, EXEC, DISCARD,
     UNKNOWN
 };
 
@@ -66,14 +67,13 @@ std::string handleHKEYS(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleHVALS(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleHMGET(KVStore& kvstore, const std::vector<std::string>& args);
 
-//Transaction commands
-std::string handleMULTI(KVStore& kvstore, const std::vector<std::string>& args);
-std::string handleEXEC(KVStore& kvstore, const std::vector<std::string>& args);
-std::string handleDISCARD(KVStore& kvstore, const std::vector<std::string>& args);
-std::string handleWATCH(KVStore& kvstore, const std::vector<std::string>& args);
-
 //Pub/Sub commands
 std::string handlePUBLISH(PubSub& ps, const std::vector<std::string>& args);
 std::string handleSUBSCRIBE(PubSub& ps, const std::vector<std::string>& args, int sock);
 std::string handleUNSUBSCRIBE(PubSub& ps, const std::vector<std::string>& args, int sock);
+
+//Transaction commands
+std::string handleMULTI(Session* session, const std::vector<std::string>& args);
+std::string handleEXEC(Session* session, const std::vector<std::string>& args);
+std::string handleDISCARD(Session* session, const std::vector<std::string>& args);
 

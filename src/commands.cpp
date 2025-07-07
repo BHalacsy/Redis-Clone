@@ -6,6 +6,7 @@
 #include "commands.hpp"
 #include "kvstore.hpp"
 #include "pubsub.hpp"
+#include "session.hpp"
 #include "util.hpp"
 
 Commands strToCmd(const std::string& cmd)
@@ -49,7 +50,6 @@ Commands strToCmd(const std::string& cmd)
     if (cmd == "MULTI") return Commands::MULTI;
     if (cmd == "EXEC") return Commands::EXEC;
     if (cmd == "DISCARD") return Commands::DISCARD;
-    if (cmd == "WATCH") return Commands::WATCH;
     if (cmd == "PUBLISH") return Commands::PUBLISH;
     if (cmd == "SUBSCRIBE") return Commands::SUBSCRIBE;
     if (cmd == "UNSUBSCRIBE") return Commands::UNSUBSCRIBE;
@@ -417,7 +417,7 @@ std::string handleSPOP(KVStore& kvstore, const std::vector<std::string>& args)
     try
     {
         int count;
-        std::string resp = "";
+        std::string resp;
         if (args.size() == 2) count = std::stoi(args[1]);
         else count = 1;
 
@@ -554,33 +554,10 @@ std::string handleHMGET(KVStore& kvstore, const std::vector<std::string>& args)
     return resp;
 }
 
-//Transaction commands
-// std::string handleMULTI(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//
-// }
-// std::string handleEXEC(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//
-// }
-// std::string handleDISCARD(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//
-// }
-// std::string handleWATCH(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//
-// }
-//
 //Pub/Sub commands
 std::string handlePUBLISH(PubSub& ps, const std::vector<std::string>& args)
 {
-    if (args.size() != 2)
-    {
-        std::cerr << "Command arguments malformed" << std::endl;
-        return argumentError("2", args.size());
-    }
-
+    if (args.size() != 2) return argumentError("2", args.size());
     return std::format(":{}\r\n", ps.publish(args[0],args[1]));
 }
 std::string handleSUBSCRIBE(PubSub& ps, const std::vector<std::string>& args, const int sock)
@@ -598,7 +575,7 @@ std::string handleSUBSCRIBE(PubSub& ps, const std::vector<std::string>& args, co
     }
     return resp;
 }
-std::string handleUNSUBSCRIBE(PubSub& ps, const std::vector<std::string>& args, int sock)
+std::string handleUNSUBSCRIBE(PubSub& ps, const std::vector<std::string>& args, const int sock)
 {
     if (args.empty())
     {
@@ -614,10 +591,26 @@ std::string handleUNSUBSCRIBE(PubSub& ps, const std::vector<std::string>& args, 
     return resp;
 }
 
+//Transaction commands
+std::string handleMULTI(Session* session, const std::vector<std::string>& args)
+{
+    if (!args.empty()) return argumentError("0", args.size());
+    if (session->transActive) return "-ERR MULTI calls can not be nested";
+    session->transActive = true;
+    session->transQueue.clear();
+    return "+OK\r\n";
+}
+std::string handleDISCARD(Session* session, const std::vector<std::string>& args)
+{
+    if (!args.empty()) return argumentError("0", args.size());
+    if (session->transActive) return "-ERR DISCARD without MULTI";
+    session->transActive = false;
+    session->transQueue.clear();
+    return "+OK\r\n";
+}
 
-//TODO pub/sub
-//TODO advanced data structures and commands (lists,sets,hashs,sortedset)
+
+
 //TODO multi exec discard transactions
-//TODO threadpool
 //
 //Later do lru and clean error handling

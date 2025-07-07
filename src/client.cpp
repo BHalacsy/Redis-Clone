@@ -20,12 +20,16 @@ void handleSend(int sock)
     while (true)
     {
 
-        for (auto i = 0; i < 10; ++i) //Only used to check if pipelining works.
-        {
-            std::getline(std::cin, input);
-            if (input == "!q") { disconnect = true; return; }
-            RESP += parseCommandToRESP(input);
-        }
+        // for (auto i = 0; i < 10; ++i) //Only used to check if pipelining works.
+        // {
+        //     std::getline(std::cin, input);
+        //     if (input == "!q") { disconnect = true; return; }
+        //     RESP += parseCommandToRESP(input);
+        // }
+
+        std::getline(std::cin, input);
+        if (input == "!q") { disconnect = true; return; }
+        RESP = parseCommandToRESP(input);
 
         std::cout << "sending...: " << RESP << std::endl; //for debug
         send(sock, RESP.c_str(), RESP.size(), 0);
