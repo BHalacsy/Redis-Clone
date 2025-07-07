@@ -5,38 +5,44 @@
 #include "pubsub.hpp"
 #include "session.hpp"
 
-//commands for switching:
-
 enum class Commands
 {
-    CONFIG,
     PING, ECHO,
-    SET, GET, DEL, EXISTS,
-    INCR, DCR, EXPIRE, TTL, FLUSHALL, MGET,
-    LPUSH, RPUSH, LPOP, RPOP, LRANGE, LLEN, LINDEX, LSET, LREM, //LMOVE?
+    DEL, EXISTS, FLUSHALL,
+    SET, GET, INCR, DCR, INCRBY, DCRBY, MGET, APPEND,
+    EXPIRE, TTL, PERSIST,
+    LPUSH, RPUSH, LPOP, RPOP, LRANGE, LLEN, LINDEX, LSET, LREM, LMOVE,
     SADD, SREM, SISMEMBER, SMEMBERS, SCARD, SPOP,
-    HSET, HGET, HDEL, HEXISTS, HLEN, HKEYS, HVALS, HMGET, //HGETALL??
+    HSET, HGET, HDEL, HEXISTS, HLEN, HKEYS, HVALS, HMGET, HGETALL,
     PUBLISH, SUBSCRIBE, UNSUBSCRIBE,
     MULTI, EXEC, DISCARD,
+    /*CONFIG,*/ TYPE, SAVE,
     UNKNOWN
 };
 
 auto strToCmd(const std::string& cmd) -> Commands;
 
 // Basic commands
-std::string handleCONFIG(const std::vector<std::string>& args);
 std::string handlePING(const std::vector<std::string>& args);
 std::string handleECHO(const std::vector<std::string>& args);
-std::string handleSET(KVStore& kvstore, const std::vector<std::string>& args);
-std::string handleGET(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleDEL(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleEXISTS(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleFLUSHALL(KVStore& kvstore, const std::vector<std::string>& args);
+
+//String commands
+std::string handleSET(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleGET(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleINCR(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleDCR(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleINCRBY(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleDCRBY(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleMGET(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleAPPEND(KVStore& kvstore, const std::vector<std::string>& args);
+
+//TTL commands
 std::string handleEXPIRE(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleTTL(KVStore& kvstore, const std::vector<std::string>& args);
-std::string handleFLUSHALL(KVStore& kvstore, const std::vector<std::string>& args);
-std::string handleMGET(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handlePERSIST(KVStore& kvstore, const std::vector<std::string>& args);
 
 //List commands
 std::string handleLPUSH(KVStore& kvstore, const std::vector<std::string>& args);
@@ -66,6 +72,7 @@ std::string handleHLEN(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleHKEYS(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleHVALS(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleHMGET(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleHGETALL(KVStore& kvstore, const std::vector<std::string>& args);
 
 //Pub/Sub commands
 std::string handlePUBLISH(PubSub& ps, const std::vector<std::string>& args);
@@ -77,3 +84,7 @@ std::string handleMULTI(Session* session, const std::vector<std::string>& args);
 std::string handleEXEC(Session* session, const std::vector<std::string>& args);
 std::string handleDISCARD(Session* session, const std::vector<std::string>& args);
 
+//Misc commands
+//std::string handleCONFIG(const std::vector<std::string>& args);
+std::string handleTYPE(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handleSAVE(KVStore& kvstore, const std::vector<std::string>& args);

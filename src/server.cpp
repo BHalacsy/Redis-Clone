@@ -144,19 +144,25 @@ std::string Server::handleCommand(const std::vector<std::string>& command, Sessi
 
     switch (cmd)
     {
-        case Commands::CONFIG: return handleCONFIG(arguments);
+
         case Commands::PING: return handlePING(arguments);
         case Commands::ECHO: return handleECHO(arguments);
-        case Commands::SET: return handleSET(kvstore, arguments);
-        case Commands::GET: return handleGET(kvstore, arguments);
         case Commands::DEL: return handleDEL(kvstore, arguments);
         case Commands::EXISTS: return handleEXISTS(kvstore, arguments);
+        case Commands::FLUSHALL: return handleFLUSHALL(kvstore, arguments);
+
+        case Commands::SET: return handleSET(kvstore, arguments);
+        case Commands::GET: return handleGET(kvstore, arguments);
         case Commands::INCR: return handleINCR(kvstore, arguments);
         case Commands::DCR: return handleDCR(kvstore, arguments);
+        case Commands::INCRBY: return handleINCRBY(kvstore, arguments);
+        case Commands::DCRBY: return handleDCRBY(kvstore, arguments);
+        case Commands::MGET: return handleMGET(kvstore, arguments);
+
         case Commands::EXPIRE: return handleEXPIRE(kvstore, arguments);
         case Commands::TTL: return handleTTL(kvstore, arguments);
-        case Commands::FLUSHALL: return handleFLUSHALL(kvstore, arguments);
-        case Commands::MGET: return handleMGET(kvstore, arguments);
+        case Commands::PERSIST: return handlePERSIST(kvstore, arguments);
+
         case Commands::LPUSH: return handleLPUSH(kvstore, arguments);
         case Commands::RPUSH: return handleRPUSH(kvstore, arguments);
         case Commands::LPOP: return handleLPOP(kvstore, arguments);
@@ -166,12 +172,14 @@ std::string Server::handleCommand(const std::vector<std::string>& command, Sessi
         case Commands::LINDEX: return handleLINDEX(kvstore, arguments);
         case Commands::LSET: return handleLSET(kvstore, arguments);
         case Commands::LREM: return handleLREM(kvstore, arguments);
+
         case Commands::SADD: return handleSADD(kvstore, arguments);
         case Commands::SREM: return handleSREM(kvstore, arguments);
         case Commands::SISMEMBER: return handleSISMEMBER(kvstore, arguments);
         case Commands::SMEMBERS: return handleSMEMBERS(kvstore, arguments);
         case Commands::SCARD: return handleSCARD(kvstore, arguments);
         case Commands::SPOP: return handleSPOP(kvstore, arguments);
+
         case Commands::HSET: return handleHSET(kvstore, arguments);
         case Commands::HGET: return handleHGET(kvstore, arguments);
         case Commands::HDEL: return handleHDEL(kvstore, arguments);
@@ -180,17 +188,20 @@ std::string Server::handleCommand(const std::vector<std::string>& command, Sessi
         case Commands::HKEYS: return handleHKEYS(kvstore, arguments);
         case Commands::HVALS: return handleHVALS(kvstore, arguments);
         case Commands::HMGET: return handleHMGET(kvstore, arguments);
+        case Commands::HGETALL: return handleHGETALL(kvstore, arguments);
+
         case Commands::PUBLISH: return handlePUBLISH(pubsubManager, arguments);
         case Commands::SUBSCRIBE: return handleSUBSCRIBE(pubsubManager, arguments, session->clientSock);
         case Commands::UNSUBSCRIBE: return handleUNSUBSCRIBE(pubsubManager, arguments, session->clientSock);
+
         case Commands::MULTI: return handleMULTI(session, arguments);
         case Commands::DISCARD: return handleDISCARD(session, arguments);
-        case Commands::EXEC:
-            if (!session->transActive)
-            {
-                return "-ERR EXEC without MULTI\r\n";
-            }
-            {
+        case Commands::EXEC: {
+                //Done here because I do not want to include server in commands.cpp
+                if (!session->transActive)
+                {
+                    return "-ERR EXEC without MULTI\r\n";
+                }
                 const auto queue = std::move(session->transQueue);
 
                 session->transActive = false; //Must so EXEC-ed commands are not queued again
@@ -204,7 +215,13 @@ std::string Server::handleCommand(const std::vector<std::string>& command, Sessi
                     resp += handleCommand(i, session);
                 }
                 return resp;
-            };
+            }
+
+        // case Commands::CONFIG: return handleCONFIG(arguments);
+        case Commands::TYPE: return handleTYPE(kvstore, arguments);
+        case Commands::SAVE: return handleSAVE(kvstore, arguments);
+
+
         default:
             std::cerr << "Command not handled: " << command[0] << std::endl;
             return std::format("-ERR unknown command '{}'", command[0]);//send error
