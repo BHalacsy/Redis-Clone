@@ -17,11 +17,14 @@ public:
     explicit KVStore(bool persist, const std::string& fileName = SAVEFILE_PATH);
     ~KVStore();
 
-    std::optional<storeType> getType(const std::string& k);
+    std::optional<storeType> getType(const std::string& k); //Gets storeType of value
 
+    //Used to call snapshotManager functions
     void loadFromDisk();
     void saveToDisk();
 
+
+    //TODO order to make sense
     bool set(const std::string& k, const std::string& v);
     std::optional<std::string> get(const std::string& k);
     int del(const std::vector<std::string>& args);
@@ -61,9 +64,9 @@ public:
 
 
 private:
-    bool persistenceToggle; //toggle to not persist when testing
-    tbb::concurrent_hash_map<std::string,RESPValue> dict; //main store
-    Expiration expirationManager;
-    Snapshot snapshotManager;
+    bool persistenceToggle; //Originally for testing
+    tbb::concurrent_hash_map<std::string,RESPValue> dict; //Main store
+    Expiration expirationManager; //For expire and ttl commands
+    Snapshot snapshotManager; //Persistence
 
 };

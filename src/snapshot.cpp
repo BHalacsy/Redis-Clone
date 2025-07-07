@@ -37,7 +37,6 @@ void Snapshot::save(const tbb::concurrent_hash_map<std::string, RESPValue>& dict
     {
         std::filesystem::create_directories(std::filesystem::path(filePath).parent_path());
         std::ofstream writeToFile(filePath, std::ios::binary | std::ios::trunc);
-        std::cout << "Saving to file: " << filePath << std::endl; //remove when done
 
         std::unordered_map<std::string, RESPValue> writeMap = convertToUnorderedMap(dict);
 

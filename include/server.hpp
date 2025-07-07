@@ -15,12 +15,13 @@ public:
 	explicit Server();
 	~Server();
 
-	void start();
-	void stop();
-	void handleCommunication(int clientSock, sockaddr_in clientAddress);
-	std::string handleCommand(const std::vector<std::string>& command, Session* session);
+	void start(); //Sets up server loop for connection acceptance
+	void stop(); //Called by main to signal graceful shutdown
+	void handleCommunication(int clientSock, sockaddr_in clientAddress); //Handles accepted connection for REQ/RES loop
+	std::string handleCommand(const std::vector<std::string>& command, Session* session); //Individual cmd handling, returns RESP
 
 private:
+	//Server connection values
 	int sock;
 	int servPort = PORT_NUM;
 	std::string hostIP = HOST_IP;

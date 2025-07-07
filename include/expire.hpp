@@ -18,6 +18,6 @@ public: //TODO clean unused methods and order them
     void erase(const std::string& key);
 
 private:
-    std::unordered_map<std::string, std::chrono::steady_clock::time_point> expTable; //key->time of expiration
-    std::mutex mtx; //thread lock for expTable
+    std::unordered_map<std::string, std::chrono::steady_clock::time_point> expTable; //Key->Time of expiration
+    std::mutex mtx; //Thread lock
 };

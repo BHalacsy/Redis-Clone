@@ -13,5 +13,5 @@ std::vector<std::string> parseInteger(const char* buffer, size_t len, size_t& of
 std::vector<std::string> parseBulkString(const char* buffer, size_t len, size_t& offset);
 std::vector<std::string> parseArray(const char* buffer, size_t len, size_t& offset);
 
-std::string parseCommandToRESP(const std::string& command); // not sure yet
-int intParser(const std::string& line);
+std::string parseCommandToRESP(const std::string& command); //Only used in client.cpp for CLI to RESP
+int intParser(const std::string& line); //RESP int to int

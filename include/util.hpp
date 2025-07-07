@@ -103,6 +103,7 @@ inline tbb::concurrent_hash_map<std::string, RESPValue> convertToConcurrentMap(c
     return retMap;
 }
 
+//Memory management
 inline unsigned int getMemoryLimit()
 {
     struct sysinfo info;
@@ -121,11 +122,12 @@ inline unsigned int getMemoryUsage()
     if (statm >> pages)
     {
         long page_size = sysconf(_SC_PAGESIZE);
-        return static_cast<unsigned int>(pages * page_size); // in bytes
+        return static_cast<unsigned int>(pages * page_size); //Bytes
     }
     return 0;
 }
 
+//Get available thread count
 inline unsigned int getCores()
 {
     return std::thread::hardware_concurrency();

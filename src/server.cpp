@@ -17,7 +17,7 @@
 #include "session.hpp"
 
 
-Server::Server() : pool(POOL_SIZE), kvstore(true)
+Server::Server() : pool(getCores()), kvstore(true)
 {
     std::cout << "Server launch!" << std::endl;
     this->sock = socket(AF_INET, SOCK_STREAM, 0);

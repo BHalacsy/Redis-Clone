@@ -30,7 +30,7 @@ int PubSub::publish(const std::string& channel, const std::string& message)
     return count;
 }
 
-int PubSub::unsubscribe(const std::string& channel, int sock)
+int PubSub::unsubscribe(const std::string& channel, const int sock)
 {
     std::lock_guard lock(mtx);
     if (channels.contains(channel))
