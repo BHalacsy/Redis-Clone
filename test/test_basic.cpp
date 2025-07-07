@@ -32,6 +32,25 @@ TEST_CASE("DEL method", "[del][kvstore method][unit]")
         REQUIRE(kv.del({"x", "a", "b"}) == 2);
     }
 }
+TEST_CASE("DEL command", "[del][command handler][unit]")
+{
+    KVStore kv(false);
+    kv.set("a", "value1");
+    kv.set("b", "value2");
+    kv.set("c", "value3");
+
+    SECTION("DEL expected")
+    {
+        REQUIRE(handleDEL(kv,{"a", "e", "d"}) == ":1\r\n");
+        REQUIRE(handleDEL(kv,{"a", "b", "c"}) == ":2\r\n");
+    }
+
+    SECTION("DEL bad args")
+    {
+        REQUIRE(handleDEL(kv,{}) == argumentError("1 or more", 0));
+    }
+}
+
 TEST_CASE("EXISTS method", "[exists][kvstore method][unit]")
 {
     KVStore kv(false);
@@ -51,24 +70,6 @@ TEST_CASE("EXISTS method", "[exists][kvstore method][unit]")
     SECTION("Check mix of existing and non-existing keys")
     {
         REQUIRE(kv.exists({"a", "y", "b"}) == 2);
-    }
-}
-TEST_CASE("DEL command", "[del][command handler][unit]")
-{
-    KVStore kv(false);
-    kv.set("a", "value1");
-    kv.set("b", "value2");
-    kv.set("c", "value3");
-
-    SECTION("DEL expected")
-    {
-        REQUIRE(handleDEL(kv,{"a", "e", "d"}) == ":1\r\n");
-        REQUIRE(handleDEL(kv,{"a", "b", "c"}) == ":2\r\n");
-    }
-
-    SECTION("DEL bad args")
-    {
-        REQUIRE(handleDEL(kv,{}) == argumentError("1 or more", 0));
     }
 }
 TEST_CASE("EXISTS command", "[exists][command handler][unit]")
