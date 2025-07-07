@@ -68,8 +68,7 @@ void Server::start()
 
         std::cout << "Waiting for new connections..." << std::endl;
         int connectionSock = accept(this->sock, reinterpret_cast<sockaddr*>(&connectionAddress), &addLen);
-        boost::asio::post(pool, [this, connectionSock, connectionAddress]()
-        {
+        boost::asio::post(pool,[this, connectionSock, connectionAddress]() {
             handleCommunication(connectionSock, connectionAddress);
         });
     }

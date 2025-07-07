@@ -16,6 +16,7 @@ enum class Commands
     HSET, HGET, HDEL, HEXISTS, HLEN, HKEYS, HVALS, HMGET, HGETALL,
     PUBLISH, SUBSCRIBE, UNSUBSCRIBE,
     MULTI, EXEC, DISCARD,
+    //TODO mem management, info and config
     /*CONFIG,*/ TYPE, SAVE,
     UNKNOWN
 };

@@ -42,7 +42,14 @@ add_executable(redis_client
 
 add_executable(tests
         test/test_basic.cpp
-        test/test_advanced.cpp
+        test/test_string.cpp
+        test/test_expiration.cpp
+        test/test_list.cpp
+        test/test_set.cpp
+        test/test_hash.cpp
+        test/test_transaction.cpp
+        test/test_misc.cpp
+        test/test_persistence.cpp
         src/kvstore.cpp
         src/parser.cpp
         src/server.cpp
