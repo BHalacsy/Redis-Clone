@@ -4,6 +4,7 @@
 #include <string>
 #include <optional>
 #include <mutex>
+
 #include <vector>
 #include <tbb/concurrent_hash_map.h>
 
@@ -11,6 +12,7 @@
 #include "RESPtype.hpp"
 #include "snapshot.hpp"
 #include "expire.hpp"
+#include "util.hpp"
 
 class KVStore {
 public:
@@ -19,6 +21,8 @@ public:
 
     //Helpers
     std::optional<storeType> getType(const std::string& k); //Gets storeType of value
+    std::optional<std::string> checkTypeError(const std::string& k, storeType expected);
+    bool spaceLeft() const;
 
     //Persistence
     void loadFromDisk();
@@ -79,5 +83,6 @@ private:
     tbb::concurrent_hash_map<std::string,RESPValue> dict; //Main store
     Expiration expirationManager; //For expire and ttl commands
     Snapshot snapshotManager; //Persistence
+    size_t maxSize = MEMORY_LIMIT; //config.h
 
 };

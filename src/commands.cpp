@@ -100,14 +100,14 @@ std::string handleFLUSHALL(KVStore& kvstore, const std::vector<std::string>& arg
 std::string handleSET(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 2) return argumentError("2", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::STR)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::STR)) return *err;
 
     return kvstore.set(args[0], args[1]) ? "+OK\r\n" : "-ERR something went wrong in set\r\n";
 }
 std::string handleGET(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1) return argumentError("1", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::STR)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::STR)) return *err;
 
     auto val = kvstore.get(args[0]);
     return val ? std::format("${}\r\n{}\r\n", val->length(), val.value()) : "$-1\r\n";
@@ -115,7 +115,7 @@ std::string handleGET(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleINCR(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1) return argumentError("1", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::STR)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::STR)) return *err;
 
     if (auto found = kvstore.incr(args[0])) return std::format(":{}\r\n", found.value());
     return "-ERR value is not number or out of range\r\n";
@@ -123,7 +123,7 @@ std::string handleINCR(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleDCR(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1) return argumentError("1", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::STR)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::STR)) return *err;
 
     if (auto found = kvstore.dcr(args[0])) return std::format(":{}\r\n", found.value());
     return "-ERR value is not number or out of range\r\n";
@@ -131,7 +131,7 @@ std::string handleDCR(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleINCRBY(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 2) return argumentError("2", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::STR)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::STR)) return *err;
 
     try
     {
@@ -146,7 +146,7 @@ std::string handleINCRBY(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleDCRBY(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 2) return argumentError("2", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::STR)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::STR)) return *err;
 
     try
     {
@@ -176,7 +176,7 @@ std::string handleMGET(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleAPPEND(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 2) return argumentError("2", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::STR)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::STR)) return *err;
 
     return std::format(":{}\r\n", kvstore.append(args[0], args[1]));
 }
@@ -210,21 +210,21 @@ std::string handlePERSIST(KVStore& kvstore, const std::vector<std::string>& args
 std::string handleLPUSH(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.empty()) return argumentError("1 or more", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::LIST)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::LIST)) return *err;
 
     return std::format(":{}\r\n",kvstore.lpush(args));
 }
 std::string handleRPUSH(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.empty()) return argumentError("1 or more", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::LIST)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::LIST)) return *err;
 
     return std::format(":{}\r\n",kvstore.rpush(args));
 }
 std::string handleLPOP(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1) return argumentError("1", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::LIST)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::LIST)) return *err;
 
     auto val = kvstore.lpop(args[0]);
     return val ? std::format("${}\r\n{}\r\n", val->length(), val.value()) : "$-1\r\n";
@@ -232,7 +232,7 @@ std::string handleLPOP(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleRPOP(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1) return argumentError("1", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::LIST)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::LIST)) return *err;
 
     auto val = kvstore.rpop(args[0]);
     return val ? std::format("${}\r\n{}\r\n", val->length(), val.value()) : "$-1\r\n";
@@ -240,7 +240,7 @@ std::string handleRPOP(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleLRANGE(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 3) return argumentError("3", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::LIST)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::LIST)) return *err;
 
     try
     {
@@ -262,14 +262,14 @@ std::string handleLRANGE(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleLLEN(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1) return argumentError("1", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::LIST)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::LIST)) return *err;
 
     return std::format(":{}\r\n", kvstore.llen(args[0]));
 }
 std::string handleLINDEX(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 2) return argumentError("2", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::LIST)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::LIST)) return *err;
 
     try
     {
@@ -284,7 +284,7 @@ std::string handleLINDEX(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleLSET(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 3) return argumentError("3", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::LIST)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::LIST)) return *err;
 
     try
     {
@@ -298,7 +298,7 @@ std::string handleLSET(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleLREM(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 3) return argumentError("3", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::LIST)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::LIST)) return *err;
 
     try
     {
@@ -313,28 +313,28 @@ std::string handleLREM(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleSADD(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() < 2) return argumentError("2 or more", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::SET)) return *err;
 
     return std::format(":{}\r\n", kvstore.sadd(args));
 }
 std::string handleSREM(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() < 2) return argumentError("2 or more", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::SET)) return *err;
 
     return std::format(":{}\r\n", kvstore.srem(args));
 }
 std::string handleSISMEMBER(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 2) return argumentError("2", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::SET)) return *err;
 
     return kvstore.sismember(args[0], args[1]) ? ":1\r\n" : ":0\r\n";
 }
 std::string handleSMEMBERS(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1) return argumentError("1", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::SET)) return *err;
 
     const auto vals = kvstore.smembers(args[0]);
     std::string resp = std::format("*{}\r\n", vals.size());
@@ -348,14 +348,14 @@ std::string handleSMEMBERS(KVStore& kvstore, const std::vector<std::string>& arg
 std::string handleSCARD(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1) return argumentError("1", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::SET)) return *err;
 
     return std::format(":{}\r\n", kvstore.scard(args[0]));
 }
 std::string handleSPOP(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (!(args.size() == 1 || args.size() == 2)) return argumentError("1 or 2", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::SET)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::SET)) return *err;
 
     try
     {
@@ -384,14 +384,14 @@ std::string handleHSET(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() < 3) return argumentError("3 or more", args.size());
     if (args.size() % 2 == 0) return "-ERR expected pair of fields and values";
-    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::HASH)) return *err;
 
     return std::format(":{}\r\n", kvstore.hset(args));
 }
 std::string handleHGET(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 2) return argumentError("2", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::HASH)) return *err;
 
     auto val = kvstore.hget(args[0], args[1]);
     return val ? std::format("${}\r\n{}\r\n", val->length(), val.value()) : "$-1\r\n";
@@ -399,28 +399,28 @@ std::string handleHGET(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleHDEL(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() < 2) return argumentError("2 or more", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::HASH)) return *err;
 
     return std::format(":{}\r\n", kvstore.hdel(args));
 }
 std::string handleHEXISTS(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 2) return argumentError("2", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::HASH)) return *err;
 
     return kvstore.hexists(args[0], args[1]) ? ":1\r\n" : ":0\r\n";
 }
 std::string handleHLEN(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1) return argumentError("1", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::HASH)) return *err;
 
     return std::format(":{}\r\n", kvstore.hlen(args[0]));
 }
 std::string handleHKEYS(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1) return argumentError("1", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::HASH)) return *err;
 
     const auto vals = kvstore.hkeys(args[0]);
     std::string resp = std::format("*{}\r\n", vals.size());
@@ -434,7 +434,7 @@ std::string handleHKEYS(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleHVALS(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1) return argumentError("1", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::HASH)) return *err;
 
     const auto vals = kvstore.hvals(args[0]);
     std::string resp = std::format("*{}\r\n", vals.size());
@@ -448,7 +448,7 @@ std::string handleHVALS(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleHMGET(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() < 2) return argumentError("2 or more", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::HASH)) return *err;
 
     const auto vals = kvstore.hmget(args);
     std::string resp = std::format("*{}\r\n", vals.size());
@@ -462,7 +462,7 @@ std::string handleHMGET(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleHGETALL(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1) return argumentError("1", args.size());
-    if (auto err = checkTypeError(kvstore, args[0], storeType::HASH)) return *err;
+    if (auto err = kvstore.checkTypeError(args[0], storeType::HASH)) return *err;
 
     const auto vals = kvstore.hgetall(args[0]);
     std::string resp = std::format("*{}\r\n", vals.size());

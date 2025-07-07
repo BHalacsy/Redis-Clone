@@ -28,6 +28,16 @@ std::optional<storeType> KVStore::getType(const std::string& k)
     if (!dict.find(accessor, k)) return std::nullopt;
     return accessor->second.type;
 }
+std::optional<std::string> KVStore::checkTypeError(const std::string& k, const storeType expected)
+{
+    auto type = this->getType(k);
+    if (type && *type != expected) return "-ERR wrong type\r\n";
+    return std::nullopt;
+}
+bool KVStore::spaceLeft() const
+{
+    return getMemoryUsage() < maxSize;
+}
 
 //Persistence
 void KVStore::loadFromDisk()
@@ -96,7 +106,6 @@ bool KVStore::set(const std::string& k, const std::string& v)
     const auto val = RESPValue{storeType::STR, v};
     dict.insert(accessor, k); //TODO change to follow others maybe / is accessor needed if its just overwritting?
     accessor->second = val;
-
     expirationManager.erase(k);
     return true;
 }

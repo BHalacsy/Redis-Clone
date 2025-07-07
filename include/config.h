@@ -7,7 +7,7 @@ constexpr auto SAVEFILE_PATH = "dump.rdb"; //Can be anything really
 constexpr int POOL_SIZE = 16; //Thread count
 constexpr int PORT_NUM = 6379; //Default redis port
 constexpr auto HOST_IP = "127.0.0.1";
-
+constexpr size_t MEMORY_LIMIT = 536870912; //512 MB
 constexpr int SNAP_TIMER = 60; //Save every x seconds
 
 

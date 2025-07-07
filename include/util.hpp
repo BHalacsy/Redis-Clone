@@ -76,11 +76,6 @@ inline std::string argumentError(std::string expected, size_t got)
     return std::format("-ERR command expected {} arguments, got {} instead\r\n", expected, got);
 }
 
-inline std::optional<std::string> checkTypeError(KVStore& kvstore, const std::string& key, const storeType expected) {
-    auto type = kvstore.getType(key);
-    if (type && *type != expected) return "-ERR wrong type\r\n";
-    return std::nullopt;
-}
 
 //For serialization (to work with Boost)
 inline std::unordered_map<std::string, RESPValue> convertToUnorderedMap(const tbb::concurrent_hash_map<std::string, RESPValue>& conMap)
@@ -104,16 +99,17 @@ inline tbb::concurrent_hash_map<std::string, RESPValue> convertToConcurrentMap(c
 }
 
 //Memory management
-inline unsigned int getMemoryLimit()
-{
-    struct sysinfo info;
-    if (sysinfo(&info) == 0)
-    {
-        // Return total RAM in bytes
-        return static_cast<unsigned int>(info.totalram * info.mem_unit);
-    }
-    return 0;
-}
+
+// inline unsigned int getMemoryLimit()
+// {
+//     struct sysinfo info;
+//     if (sysinfo(&info) == 0)
+//     {
+//         // Return total RAM in bytes
+//         return static_cast<unsigned int>(info.totalram * info.mem_unit);
+//     }
+//     return 0;
+// }
 
 inline unsigned int getMemoryUsage()
 {
@@ -125,10 +121,4 @@ inline unsigned int getMemoryUsage()
         return static_cast<unsigned int>(pages * page_size); //Bytes
     }
     return 0;
-}
-
-//Get available thread count
-inline unsigned int getCores()
-{
-    return std::thread::hardware_concurrency();
 }

@@ -19,5 +19,5 @@ public: //TODO clean unused methods and order them
 
 private:
     std::unordered_map<std::string, std::chrono::steady_clock::time_point> expTable; //Key->Time of expiration
-    std::mutex mtx; //Thread lock
+    std::mutex mtx; //Container lock
 };
