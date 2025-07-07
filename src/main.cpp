@@ -8,7 +8,6 @@ Server* redis = nullptr;
 void signalHandler(const int signal) {
     if (redis)
     {
-        std::cout << "Signal: " << signal << " sent to server for shutdown" << std::endl;
         redis->stop(); // Gracefully stop the server
         delete redis;
     }

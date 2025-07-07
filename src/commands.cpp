@@ -5,6 +5,7 @@
 
 #include "commands.hpp"
 #include "kvstore.hpp"
+#include "pubsub.hpp"
 #include "util.hpp"
 
 Commands strToCmd(const std::string& cmd)
@@ -571,24 +572,47 @@ std::string handleHMGET(KVStore& kvstore, const std::vector<std::string>& args)
 //
 // }
 //
-// //Pub/Sub commands
-// std::string handlePUBLISH(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//     if (args.size() != 2)
-//     {
-//         std::cerr << "Command arguments malformed" << std::endl;
-//         return argumentError("2", args.size());
-//     }
-//
-// }
-// std::string handleSUBSCRIBE(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//
-// }
-// std::string handleUNSUBSCRIBE(KVStore& kvstore, const std::vector<std::string>& args)
-// {
-//
-// }
+//Pub/Sub commands
+std::string handlePUBLISH(PubSub& ps, const std::vector<std::string>& args)
+{
+    if (args.size() != 2)
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("2", args.size());
+    }
+
+    return std::format(":{}\r\n", ps.publish(args[0],args[1]));
+}
+std::string handleSUBSCRIBE(PubSub& ps, const std::vector<std::string>& args, const int sock)
+{
+    if (args.empty())
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("1 or more", args.size());
+    }
+
+    std::string resp;
+    for (const auto& i : args)
+    {
+        resp += std::format("*3\r\n$9\r\nsubscribe\r\n${}\r\n{}\r\n:{}\r\n", i.size(), i, ps.subscribe(i, sock));
+    }
+    return resp;
+}
+std::string handleUNSUBSCRIBE(PubSub& ps, const std::vector<std::string>& args, int sock)
+{
+    if (args.empty())
+    {
+        std::cerr << "Command arguments malformed" << std::endl;
+        return argumentError("1 or more", args.size());
+    }
+
+    std::string resp;
+    for (const auto& i : args)
+    {
+        resp += std::format("*3\r\n$11\r\nunsubscribe\r\n${}\r\n{}\r\n:{}\r\n", i.size(), i, ps.unsubscribe(i, sock));
+    }
+    return resp;
+}
 
 
 //TODO pub/sub

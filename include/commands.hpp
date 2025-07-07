@@ -2,6 +2,7 @@
 
 #include <string>
 #include "kvstore.hpp"
+#include "pubsub.hpp"
 
 //commands for switching:
 
@@ -72,7 +73,7 @@ std::string handleDISCARD(KVStore& kvstore, const std::vector<std::string>& args
 std::string handleWATCH(KVStore& kvstore, const std::vector<std::string>& args);
 
 //Pub/Sub commands
-std::string handlePUBLISH(KVStore& kvstore, const std::vector<std::string>& args);
-std::string handleSUBSCRIBE(KVStore& kvstore, const std::vector<std::string>& args);
-std::string handleUNSUBSCRIBE(KVStore& kvstore, const std::vector<std::string>& args);
+std::string handlePUBLISH(PubSub& ps, const std::vector<std::string>& args);
+std::string handleSUBSCRIBE(PubSub& ps, const std::vector<std::string>& args, int sock);
+std::string handleUNSUBSCRIBE(PubSub& ps, const std::vector<std::string>& args, int sock);
 

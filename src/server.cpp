@@ -111,7 +111,7 @@ void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress
             //handle and send
             for (const auto& command : commands)
             {
-                resp += handleCommand(command);
+                resp += handleCommand(command, session);
             }
             send(clientSock, resp.c_str(), resp.size(), 0);
         } catch (const std::exception& e) {
@@ -120,13 +120,13 @@ void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress
         }
     }
     //TODO remove from sub channels
-
+    pubsubManager.unsubscribeAll(session->clientSock);
     close(clientSock);
     delete session;
 }
 
 
-std::string Server::handleCommand(const std::vector<std::string>& command) //maybe change to handle resp
+std::string Server::handleCommand(const std::vector<std::string>& command, Session* session) //maybe change to handle resp
 {
     const std::vector arguments(command.begin() + 1, command.end());
 
@@ -178,9 +178,9 @@ std::string Server::handleCommand(const std::vector<std::string>& command) //may
         // case Commands::EXEC: return handleEXEC(kvstore, arguments);
         // case Commands::DISCARD: return handleDISCARD(kvstore, arguments);
         // case Commands::WATCH: return handleWATCH(kvstore, arguments);
-        // case Commands::PUBLISH: return handlePUBLISH(kvstore, arguments);
-        // case Commands::SUBSCRIBE: return handleSUBSCRIBE(kvstore, arguments);
-        // case Commands::UNSUBSCRIBE: return handleUNSUBSCRIBE(kvstore, arguments);
+        case Commands::PUBLISH: return handlePUBLISH(pubsubManager, arguments);
+        case Commands::SUBSCRIBE: return handleSUBSCRIBE(pubsubManager, arguments, session->clientSock);
+        case Commands::UNSUBSCRIBE: return handleUNSUBSCRIBE(pubsubManager, arguments, session->clientSock);
         default:
             std::cerr << "Command not handled: " << command[0] << std::endl;
             return std::format("-ERR unknown command '{}'", command[0]);//send error

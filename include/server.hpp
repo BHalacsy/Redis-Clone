@@ -7,6 +7,7 @@
 
 #include "config.h"
 #include "kvstore.hpp"
+#include "session.hpp"
 #include "pubsub.hpp"
 
 class Server {
@@ -17,7 +18,7 @@ public:
 	void start();
 	void stop();
 	void handleCommunication(int clientSock, sockaddr_in clientAddress);
-	std::string handleCommand(const std::vector<std::string>& command);
+	std::string handleCommand(const std::vector<std::string>& command, Session* session);
 
 private:
 	int sock;
