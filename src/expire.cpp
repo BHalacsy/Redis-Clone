@@ -50,18 +50,17 @@ std::optional<std::string> Expiration::removeKeyExp(const std::string& key)
     return std::nullopt;
 }
 
-void Expiration::clear()
-{
-    std::lock_guard lock(mtx);
-    expTable.clear();
-}
-
 void Expiration::erase(const std::string& key)
 {
     std::lock_guard lock(mtx);
     expTable.erase(key);
 }
 
+void Expiration::clear()
+{
+    std::lock_guard lock(mtx);
+    expTable.clear();
+}
 
 
 

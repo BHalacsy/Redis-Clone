@@ -5,7 +5,6 @@
 #include "parser.hpp"
 #include "util.hpp"
 
-//TODO make sure pipelining works (check for incomplete commands)
 std::vector<std::vector<std::string>> parseRESPPipeline(const char* buffer, const size_t len, size_t& offset)
 {
     std::vector<std::vector<std::string>> commands;

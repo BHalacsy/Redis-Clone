@@ -7,12 +7,12 @@
 #include <string>
 #include <memory>
 
-#include "RESPtype.hpp"
+#include "respvalue.hpp"
 
 class LRU {
 public:
     LRU() = default;
-    ~LRU() = default; //maybe handle persistence here? Clear?
+    ~LRU() = default; //TODO maybe handle persistence here? Clear?
 
     void touch(const std::string& k)
     {
@@ -60,7 +60,7 @@ public:
     }
 
 private:
-    std::mutex mtx;
     std::list<std::string> order; //order queue
     std::unordered_map<std::string, std::list<std::string>::iterator> keyToOrder; //key->iterator in order queue
+    std::mutex mtx;
 };

@@ -6,10 +6,10 @@
 #include <tbb/concurrent_hash_map.h>
 
 #include "kvstore.hpp"
-#include "RESPtype.hpp"
+#include "respvalue.hpp"
 #include "expire.hpp"
 
-KVStore::KVStore(const bool persist, const std::string& fileName, const int maxKeys) : persistenceToggle(persist), snapshotManager(fileName), maxSize(static_cast<size_t>(maxKeys)) //TODO maybe change to be nicer and more specific
+KVStore::KVStore(const bool persist, const std::string& fileName, const int maxKeys) : persistenceToggle(persist), snapshotManager(fileName), maxSize(static_cast<size_t>(maxKeys))
 {
     if (persistenceToggle) loadFromDisk();
     for (auto& [k,v] : dict)

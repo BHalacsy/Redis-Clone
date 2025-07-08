@@ -6,19 +6,19 @@
 #include <chrono>
 #include <mutex>
 
-#include "RESPtype.hpp"
+#include "respvalue.hpp"
 #include "LRU.hpp"
 
 class Expiration{
-public: //TODO clean unused methods and order them
+public:
     void setExpiry(const std::string& key, int seconds);
     int getTTL(const std::string& key);
     void removeAllExp(tbb::concurrent_hash_map<std::string, RESPValue>& dict, LRU& lru);
     std::optional<std::string> removeKeyExp(const std::string& key);
-    void clear();
     void erase(const std::string& key);
+    void clear();
 
 private:
     std::unordered_map<std::string, std::chrono::steady_clock::time_point> expTable; //Key->Time of expiration
-    std::mutex mtx; //Container lock
+    std::mutex mtx;
 };

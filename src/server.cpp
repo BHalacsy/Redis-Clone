@@ -51,7 +51,6 @@ Server::~Server()
 
 void Server::start()
 {
-    //TODO for connection implement fine grain thread locks for true concurrency
     std::thread snapShotPerMinute([this]
     {
         while (running)

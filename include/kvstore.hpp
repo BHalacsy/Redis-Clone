@@ -9,7 +9,7 @@
 #include <tbb/concurrent_hash_map.h>
 
 #include "config.h"
-#include "RESPtype.hpp"
+#include "respvalue.hpp"
 #include "snapshot.hpp"
 #include "expire.hpp"
 #include "util.hpp"
