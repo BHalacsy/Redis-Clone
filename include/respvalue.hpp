@@ -14,25 +14,23 @@
 
 enum class storeType {STR, LIST, SET, HASH};
 
-//storeType Enum class serialization
-template<class Archive> void serialize(Archive& ar, storeType& t, const unsigned version)
+template<class Archive> void serialize(Archive& ar, storeType& t, const unsigned version) //storeType Enum class serialization
 {
     ar & reinterpret_cast<int&>(t);
 }
 
 struct RESPValue
 {
-    storeType type;
+    storeType type; //For type checking or switch casing
     boost::variant<
         std::string,
         std::deque<std::string>,
         std::unordered_set<std::string>,
-        std::unordered_map<std::string, std::string>> value;
+        std::unordered_map<std::string, std::string>> value; //Uses boost for serialization
 
 private:
-    //RESPvalue struct serialization
     friend class boost::serialization::access;
-    template<class Archive> void serialize(Archive& ar, const unsigned version)
+    template<class Archive> void serialize(Archive& ar, const unsigned version) //RESPvalue struct serialization
     {
         ar & type; //Implemented above
         ar & value;

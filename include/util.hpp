@@ -111,14 +111,14 @@ inline tbb::concurrent_hash_map<std::string, RESPValue> convertToConcurrentMap(c
 //     return 0;
 // }
 
-inline unsigned int getMemoryUsage()
-{
-    std::ifstream statm("/proc/self/statm");
-    long pages = 0;
-    if (statm >> pages)
-    {
-        long page_size = sysconf(_SC_PAGESIZE);
-        return static_cast<unsigned int>(pages * page_size); //Bytes
-    }
-    return 0;
-}
+// inline unsigned int getMemoryUsage()
+// {
+//     std::ifstream statm("/proc/self/statm");
+//     long pages = 0;
+//     if (statm >> pages)
+//     {
+//         long page_size = sysconf(_SC_PAGESIZE);
+//         return static_cast<unsigned int>(pages * page_size); //Bytes
+//     }
+//     return 0;
+// }

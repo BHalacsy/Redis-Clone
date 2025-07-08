@@ -14,7 +14,7 @@ public:
     LRU() = default;
     ~LRU() = default; //TODO maybe handle persistence here? Clear?
 
-    void touch(const std::string& k)
+    void touch(const std::string& k) //Refresh in order queue
     {
         std::lock_guard lock(mtx);
         if (const auto found = keyToOrder.find(k); found != keyToOrder.end())
@@ -28,7 +28,7 @@ public:
         }
     }
 
-    std::string evict()
+    std::string evict() //Remove oldest key in queue
     {
         std::lock_guard lock(mtx);
         if (order.empty()) //not sure if needed

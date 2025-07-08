@@ -281,8 +281,8 @@ std::vector<std::optional<std::string>> KVStore::mget(const std::vector<std::str
     std::vector<std::optional<std::string>> ret;
     for (const auto& i : args)
     {
-        checkExpKey(i); //TODO maybe fix to not use .get method
-        lruManager.touch(i);
+        // checkExpKey(i); //Commented out because get already does it
+        // lruManager.touch(i);
         ret.push_back(get(i));
     }
     return ret;

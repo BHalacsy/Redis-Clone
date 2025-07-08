@@ -14,7 +14,7 @@ public:
 	void clear() const;
 
 private:
-	std::string filePath;
+	std::string filePath; //More so file name
 };
 
 

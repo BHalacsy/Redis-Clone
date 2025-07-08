@@ -17,7 +17,7 @@
 #include "session.hpp"
 
 
-Server::Server() : pool(POOL_SIZE), kvstore(true, "dump.rdb", 7) //TODO change to use default in config
+Server::Server() : pool(POOL_SIZE), kvstore(true, "dump.rdb", KEY_LIMIT) //TODO change to use default in config
 {
     std::cout << "Server launch!" << std::endl;
     this->sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -80,11 +80,11 @@ void Server::stop()
 }
 
 
-void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress)
+void Server::handleCommunication(const int clientSock, const sockaddr_in clientAddress)
 {
     std::cout << "New connection" << std::endl;
 
-    auto session = new Session{
+    const auto session = new Session{
         .clientSock = clientSock,
         .clientAddress = inet_ntoa(clientAddress.sin_addr)
     };
@@ -117,7 +117,6 @@ void Server::handleCommunication(const int clientSock, sockaddr_in clientAddress
             break;
         }
     }
-    //TODO remove from sub channels
     pubsubManager.unsubscribeAll(session->clientSock);
     close(clientSock);
     delete session;

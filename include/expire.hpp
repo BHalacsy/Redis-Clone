@@ -13,8 +13,8 @@ class Expiration{
 public:
     void setExpiry(const std::string& key, int seconds);
     int getTTL(const std::string& key);
-    void removeAllExp(tbb::concurrent_hash_map<std::string, RESPValue>& dict, LRU& lru);
-    std::optional<std::string> removeKeyExp(const std::string& key);
+    void removeAllExp(tbb::concurrent_hash_map<std::string, RESPValue>& dict, LRU& lru); //Clear all expired keys
+    std::optional<std::string> removeKeyExp(const std::string& key); //Specific key check (faster than checking all)
     void erase(const std::string& key);
     void clear();
 

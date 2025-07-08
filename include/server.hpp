@@ -21,7 +21,6 @@ public:
 	std::string handleCommand(const std::vector<std::string>& command, Session* session); //Individual cmd handling, returns RESP
 
 private:
-	//Server connection values
 	int sock;
 	int servPort = PORT_NUM;
 	std::string hostIP = HOST_IP;

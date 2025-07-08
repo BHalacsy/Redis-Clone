@@ -86,10 +86,10 @@ private:
     tbb::concurrent_hash_map<std::string,RESPValue> dict; //Main store
     Expiration expirationManager; //For expire and ttl commands
     Snapshot snapshotManager; //Persistence
+    LRU lruManager; //Eviction on max limit reach
 
     //Both sizes are just key count
     size_t maxSize = KEY_LIMIT; //config.h
     std::atomic<size_t> currSize{0};
-    LRU lruManager;
 
 };
