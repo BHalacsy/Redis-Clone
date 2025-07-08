@@ -6,6 +6,8 @@
 #include <tbb/concurrent_hash_map.h>
 #include <mutex>
 
+#include "LRU.hpp"
+
 void Expiration::setExpiry(const std::string& key, int seconds)
 {
     std::lock_guard lock(mtx);
@@ -21,28 +23,31 @@ int Expiration::getTTL(const std::string& key)
     return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(dur).count());
 }
 
-void Expiration::removeAllExp(tbb::concurrent_hash_map<std::string, RESPValue>& dict) //TODO USE ACCESSOR for erase
+void Expiration::removeAllExp(tbb::concurrent_hash_map<std::string, RESPValue>& dict, LRU& lru)
 {
     std::lock_guard lock(mtx);
     for (auto i = expTable.begin(); i != expTable.end();)
     {
         if (std::chrono::steady_clock::now() >= i->second)
         {
-            dict.erase(i->first);
+
             i = expTable.erase(i);
         }
         else ++i;
     }
 }
 
-void Expiration::removeKeyExp(const std::string& key, tbb::concurrent_hash_map<std::string, RESPValue>& dict) //TODO USE ACCESSOR for erase
+std::optional<std::string> Expiration::removeKeyExp(const std::string& key)
 {
     std::lock_guard lock(mtx);
     if (const auto found = expTable.find(key); found != expTable.end() && std::chrono::steady_clock::now() >= found->second)
     {
-        dict.erase(key);
+
+        auto keyCopy = found->first;
         expTable.erase(found);
+        return keyCopy;
     }
+    return std::nullopt;
 }
 
 void Expiration::clear()

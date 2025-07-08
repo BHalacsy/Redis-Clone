@@ -17,7 +17,7 @@
 #include "session.hpp"
 
 
-Server::Server() : pool(POOL_SIZE), kvstore(true)
+Server::Server() : pool(POOL_SIZE), kvstore(true, "dump.rdb", 7) //TODO change to use default in config
 {
     std::cout << "Server launch!" << std::endl;
     this->sock = socket(AF_INET, SOCK_STREAM, 0);

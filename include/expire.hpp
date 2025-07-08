@@ -7,13 +7,14 @@
 #include <mutex>
 
 #include "RESPtype.hpp"
+#include "LRU.hpp"
 
 class Expiration{
 public: //TODO clean unused methods and order them
     void setExpiry(const std::string& key, int seconds);
     int getTTL(const std::string& key);
-    void removeAllExp(tbb::concurrent_hash_map<std::string, RESPValue>& dict);
-    void removeKeyExp(const std::string& key, tbb::concurrent_hash_map<std::string, RESPValue>& dict);
+    void removeAllExp(tbb::concurrent_hash_map<std::string, RESPValue>& dict, LRU& lru);
+    std::optional<std::string> removeKeyExp(const std::string& key);
     void clear();
     void erase(const std::string& key);
 
