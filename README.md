@@ -5,14 +5,14 @@ Making a Redis clone from scratch using C++. Inspired by the build your own x re
 - **Concurrent** TCP connection with **RESP protocol** (Thread pool with Boost)
 - In-memory key-value store **(Strings, Lists, Sets, Hashes)**
 - **Commands supported**
-  - Basic: PING, ECHO, DEL, EXISTS, FLUSHALL
-  - String: SET, GET, INCR, DCR, INCRBY, DCRBY, MGET, APPEND
-  - Key expiration: EXPIRE, TTL, PERSIST
-  - List: LPUSH, RPUSH, LPOP, RPOP, LRANGE, LLEN, LINDEX, LSET, LREM
-  - Set: SADD, SREM, SISMEMBER, SMEMBERS, SCARD, SPOP
-  - Hash: HSET, HGET, HDEL, HEXISTS, HLEN, HKEYS, HVALS, HMGET, HGETALL
-  - Pub/Sub: PUBLISH, SUBSCRIBE, UNSUBSCRIBE
-  - Transaction: MULTI, EXEC, DISCARD
+    - Basic: PING, ECHO, DEL, EXISTS, FLUSHALL
+    - String: SET, GET, INCR, DCR, INCRBY, DCRBY, MGET, APPEND
+    - Key expiration: EXPIRE, TTL, PERSIST
+    - List: LPUSH, RPUSH, LPOP, RPOP, LRANGE, LLEN, LINDEX, LSET, LREM
+    - Set: SADD, SREM, SISMEMBER, SMEMBERS, SCARD, SPOP
+    - Hash: HSET, HGET, HDEL, HEXISTS, HLEN, HKEYS, HVALS, HMGET, HGETALL
+    - Pub/Sub: PUBLISH, SUBSCRIBE, UNSUBSCRIBE
+    - Transaction: MULTI, EXEC, DISCARD
 - **Key expiration**
 - **Pub/Sub** support
 - **Transaction** support command queueing
@@ -22,7 +22,7 @@ Making a Redis clone from scratch using C++. Inspired by the build your own x re
 - **Catch2 unit testing** with CI workflows
 
 ## Demo
-Check out my video about why and how I made this clone. Code explination.
+TBD
 
 ## Build
 
