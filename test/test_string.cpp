@@ -170,6 +170,122 @@ TEST_CASE("DCR command", "[dcr][command handler][unit]")
     }
 }
 
+TEST_CASE("INCRBY method", "[incrby][kvstore method][unit]")
+{
+    KVStore kv(false);
+
+    SECTION("Incrby on new key")
+    {
+        REQUIRE(kv.incrby("a", 5) == 5);
+        REQUIRE(kv.get("a") == "5");
+    }
+
+    SECTION("Incrby on existing key")
+    {
+        kv.set("a", "2");
+        REQUIRE(kv.incrby("a", 3) == 5);
+        REQUIRE(kv.get("a") == "5");
+    }
+
+    SECTION("Incrby on non-number")
+    {
+        kv.set("b", "string");
+        REQUIRE(kv.incrby("b", 2) == std::nullopt);
+    }
+
+    SECTION("Incrby negative value")
+    {
+        kv.set("c", "10");
+        REQUIRE(kv.incrby("c", -4) == 6);
+        REQUIRE(kv.get("c") == "6");
+    }
+}
+TEST_CASE("INCRBY command", "[incrby][command handler][unit]")
+{
+    KVStore kv(false);
+
+    SECTION("INCRBY expected")
+    {
+        REQUIRE(handleINCRBY(kv, {"a", "7"}) == ":7\r\n");
+        REQUIRE(handleINCRBY(kv, {"a", "3"}) == ":10\r\n");
+    }
+
+    SECTION("INCRBY non-number value")
+    {
+        kv.set("b", "foo");
+        REQUIRE(handleINCRBY(kv, {"b", "2"}) == "-ERR value is not number or out of range\r\n");
+    }
+
+    SECTION("INCRBY bad args")
+    {
+        REQUIRE(handleINCRBY(kv, {"a"}) == argumentError("2", 1));
+        REQUIRE(handleINCRBY(kv, {"a", "1", "2"}) == argumentError("2", 3));
+    }
+
+    SECTION("INCRBY non-integer increment")
+    {
+        REQUIRE(handleINCRBY(kv, {"a", "string"}) == "-ERR arg given not a number\r\n");
+    }
+}
+
+TEST_CASE("DCRBY method", "[dcrby][kvstore method][unit]")
+{
+    KVStore kv(false);
+
+    SECTION("Dcrby on new key")
+    {
+        REQUIRE(kv.dcrby("a", 4) == -4);
+        REQUIRE(kv.get("a") == "-4");
+    }
+
+    SECTION("Dcrby on existing key")
+    {
+        kv.set("a", "10");
+        REQUIRE(kv.dcrby("a", 3) == 7);
+        REQUIRE(kv.get("a") == "7");
+    }
+
+    SECTION("Dcrby on non-number")
+    {
+        kv.set("b", "string");
+        REQUIRE(kv.dcrby("b", 2) == std::nullopt);
+    }
+
+    SECTION("Dcrby negative value")
+    {
+        kv.set("c", "5");
+        REQUIRE(kv.dcrby("c", -2) == 7);
+        REQUIRE(kv.get("c") == "7");
+    }
+}
+TEST_CASE("DCRBY command", "[dcrby][command handler][unit]")
+{
+    KVStore kv(false);
+
+    SECTION("DCRBY expected")
+    {
+        REQUIRE(handleDCRBY(kv, {"a", "2"}) == ":-2\r\n");
+        REQUIRE(handleDCRBY(kv, {"a", "3"}) == ":-5\r\n");
+    }
+
+    SECTION("DCRBY non-number value")
+    {
+        kv.set("b", "foo");
+        REQUIRE(handleDCRBY(kv, {"b", "2"}) == "-ERR value is not number or out of range\r\n");
+    }
+
+    SECTION("DCRBY bad args")
+    {
+        REQUIRE(handleDCRBY(kv, {"a"}) == argumentError("2", 1));
+        REQUIRE(handleDCRBY(kv, {"a", "1", "2"}) == argumentError("2", 3));
+    }
+
+    SECTION("DCRBY non-integer decrement")
+    {
+        REQUIRE(handleDCRBY(kv, {"a", "string"}) == "-ERR arg given not a number\r\n");
+    }
+}
+
 TEST_CASE("MGET method", "[mget][kvstore method][unit]")
 {
     KVStore kv(false);
@@ -206,7 +322,41 @@ TEST_CASE("MGET command", "[mget][command handler][unit]")
         REQUIRE(handleMGET(kv, {}) == argumentError("1 or more", 0));
     }
 }
-//TODO APPEND, INCRBY DCRBY
+
+TEST_CASE("APPEND method", "[append][kvstore method][unit]")
+{
+    KVStore kv(false);
+
+    SECTION("Append to new key")
+    {
+        REQUIRE(kv.append("a", "word") == 4);
+        REQUIRE(kv.get("a") == "word");
+    }
+
+    SECTION("Append to existing key")
+    {
+        kv.set("a", "fizz");
+        REQUIRE(kv.append("a", "buzz") == 8);
+        REQUIRE(kv.get("a") == "fizzbuzz");
+    }
+}
+TEST_CASE("APPEND command", "[append][command handler][unit]")
+{
+    KVStore kv(false);
+
+    SECTION("APPEND expected")
+    {
+        REQUIRE(handleAPPEND(kv, {"a", "foo"}) == ":3\r\n");
+        REQUIRE(handleAPPEND(kv, {"a", "bar"}) == ":6\r\n");
+        REQUIRE(kv.get("a") == "foobar");
+    }
+
+    SECTION("APPEND bad args")
+    {
+        REQUIRE(handleAPPEND(kv, {"a"}) == argumentError("2", 1));
+        REQUIRE(handleAPPEND(kv, {}) == argumentError("2", 0));
+    }
+}
 
 
 

@@ -7,3 +7,6 @@
 #include "kvstore.hpp"
 #include "commands.hpp"
 #include "util.hpp"
+
+//TODO unit tests, might have to be integration tests
+

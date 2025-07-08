@@ -99,4 +99,41 @@ TEST_CASE("TTL command", "[ttl][command handler][unit]")
         REQUIRE(handleTTL(kv, {"a", "b"}) == argumentError("1", 2));
     }
 }
-//TODO PERSIST method command
+
+TEST_CASE("PERSIST method", "[persist][kvstore method][unit]")
+{
+    KVStore kv(false);
+    kv.set("a", "1");
+
+    SECTION("Persist on key with expiry")
+    {
+        kv.expire("a", 10);
+        REQUIRE(kv.ttl("a") > 0);
+        REQUIRE(kv.persist("a") == true);
+        REQUIRE(kv.ttl("a") == -1);
+    }
+
+    SECTION("Persist on non-existing key")
+    {
+        REQUIRE(kv.persist("b") == false);
+    }
+}
+TEST_CASE("PERSIST command", "[persist][command handler][unit]")
+{
+    KVStore kv(false);
+    kv.set("a", "1");
+
+    SECTION("PERSIST expected")
+    {
+        kv.expire("a", 10);
+        REQUIRE(handlePERSIST(kv, {"a"}) == ":1\r\n");
+        REQUIRE(kv.ttl("a") == -1);
+        REQUIRE(handlePERSIST(kv, {"b"}) == ":0\r\n");
+    }
+
+    SECTION("PERSIST bad args")
+    {
+        REQUIRE(handlePERSIST(kv, {}) == argumentError("1", 0));
+        REQUIRE(handlePERSIST(kv, {"a", "b"}) == argumentError("1", 2));
+    }
+}

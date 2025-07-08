@@ -197,3 +197,42 @@ TEST_CASE("HMGET commands", "[hmget][command handler][unit]")
         REQUIRE(handleHMGET(kv, {}) == argumentError("2 or more", 0));
     }
 }
+
+TEST_CASE("HGETALL method", "[hgetall][kvstore method][unit]")
+{
+    KVStore kv(false);
+    kv.hset({"myhash", "f1", "v1", "f2", "v2"});
+
+    SECTION("Hgetall returns all field-value pairs")
+    {
+        auto res = kv.hgetall("myhash");
+        REQUIRE(res.size() == 4);
+        REQUIRE((res[0] == "f1" || res[0] == "f2"));
+        REQUIRE((res[1] == "v1" || res[1] == "v2"));
+        REQUIRE((res[2] == "f1" || res[2] == "f2"));
+        REQUIRE((res[3] == "v1" || res[3] == "v2"));
+    }
+
+    SECTION("Hgetall on non-existing hash returns empty vector")
+    {
+        auto res = kv.hgetall("nohash");
+        REQUIRE(res.empty());
+    }
+}
+
+TEST_CASE("HGETALL command", "[hgetall][command handler][unit]")
+{
+    KVStore kv(false);
+    kv.hset({"myhash", "f1", "v1", "f2", "v2"});
+
+    SECTION("HGETALL returns all field-value pairs in RESP")
+    {
+        std::string resp = handleHGETALL(kv, {"myhash"});
+        REQUIRE(resp == "*4\r\n$2\r\nf2\r\n$2\r\nv2\r\n$2\r\nf1\r\n$2\r\nv1\r\n");
+    }
+
+    SECTION("HGETALL on non-existing hash returns empty RESP array")
+    {
+        REQUIRE(handleHGETALL(kv, {"nohash"}) == "*0\r\n");
+    }
+}

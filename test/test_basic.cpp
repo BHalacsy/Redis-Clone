@@ -8,6 +8,36 @@
 #include "commands.hpp"
 #include "util.hpp"
 
+TEST_CASE("PING command", "[ping][command handler][unit]")
+{
+    SECTION("PING no arg")
+    {
+        REQUIRE(handlePING({}) == "+PONG\r\n");
+    }
+
+    SECTION("PING message")
+    {
+        REQUIRE(handlePING({"hello world"}) == "$11\r\nhello world\r\n");
+    }
+
+    SECTION("PING bad args")
+    {
+        REQUIRE(handlePING({"hello", "world"}) == argumentError("1 or none", 2));
+    }
+
+}
+TEST_CASE("ECHO command", "[echo][command handler][unit]")
+{
+    SECTION("ECHO message")
+    {
+        REQUIRE(handleECHO({"sendback"}) == "$8\r\nsendback\r\n");
+    }
+
+    SECTION("ECHO bad args")
+    {
+        REQUIRE(handleECHO({"send", "back"}) == argumentError("1", 2));
+    }
+}
 
 TEST_CASE("DEL method", "[del][kvstore method][unit]")
 {
@@ -89,38 +119,7 @@ TEST_CASE("EXISTS command", "[exists][command handler][unit]")
         REQUIRE(handleEXISTS(kv, {}) == argumentError("1 or more", 0));
     }
 }
-//TODO FLUSHALL method?
 
-TEST_CASE("PING command", "[ping][command handler][unit]")
-{
-    SECTION("PING no arg")
-    {
-        REQUIRE(handlePING({}) == "+PONG\r\n");
-    }
-
-    SECTION("PING message")
-    {
-        REQUIRE(handlePING({"hello world"}) == "$11\r\nhello world\r\n");
-    }
-
-    SECTION("PING bad args")
-    {
-        REQUIRE(handlePING({"hello", "world"}) == argumentError("1 or none", 2));
-    }
-
-}
-TEST_CASE("ECHO command", "[echo][command handler][unit]")
-{
-    SECTION("ECHO message")
-    {
-        REQUIRE(handleECHO({"sendback"}) == "$8\r\nsendback\r\n");
-    }
-
-    SECTION("ECHO bad args")
-    {
-        REQUIRE(handleECHO({"send", "back"}) == argumentError("1", 2));
-    }
-}
 TEST_CASE("FLUSHALL command", "[flushall][command handler][unit]")
 {
     KVStore kv(false);
@@ -138,4 +137,17 @@ TEST_CASE("FLUSHALL command", "[flushall][command handler][unit]")
         REQUIRE(handleFLUSHALL(kv, {"a"}) == argumentError("0", 1));
     }
 }
+TEST_CASE("FLUSHALL method", "[exists][kvstore method][unit]")
+{
+    KVStore kv(false);
+    kv.set("a", "1");
+    kv.set("b", "2");
+
+    SECTION("FLUSHALL expected")
+    {
+        kv.flushall();
+        REQUIRE(kv.get("a") == std::nullopt);
+    }
+}
+
 
