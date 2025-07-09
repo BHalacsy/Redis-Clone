@@ -32,19 +32,22 @@ TBD
 - [TBB (oneAPI Threading Building Blocks)](https://github.com/oneapi-src/oneTBB)
 - [Boost](https://www.boost.org/) (serialization, asio)
 - CMake
-- Catch2 testing
+- Catch2 testing (submodule downloaded if using steps to build
 
 ### Steps to build
 ```sh
 git clone https://github.com/BHalacsy/Redis-Clone
 cd Redis-Clone
-mkdir build && cd build
+git submodule update --init -recursive
 cmake .
 cmake --build .
 ```
 
 ### Run
-```./redis_clone```
+The server:
+```./redis_server```
+The client: 
+```./redis_client```
 
 ### Usage
 For specifics on various implemented redis commands I recommend looking at the [redis docs](https://redis.io/docs/latest/commands) for what you may be looking for.
