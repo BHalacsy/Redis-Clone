@@ -47,4 +47,4 @@ cmake --build .
 ```./redis_clone```
 
 ### Usage
-To check usage for specific commands look at the [redis docs](https://redis.io/docs/latest/commands).
+For specifics on various implemented redis commands I recommend looking at the [redis docs](https://redis.io/docs/latest/commands) for what you may be looking for.
