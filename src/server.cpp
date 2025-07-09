@@ -34,7 +34,7 @@ Server::Server() : pool(POOL_SIZE), kvstore(true, SAVEFILE_PATH, KEY_LIMIT) //Co
             throw std::runtime_error("Server bind failed");
         }
         if (listen(this->sock, 5) != 0) { throw std::runtime_error("Server listen failed"); }
-        std::cout << "Listening on: " << hostIP << " : " << servPort << std::endl;
+        std::cout << "Listening on: " << hostIP << " : " << servPort << std::endl; //TODO using logging instead of cout and cerr?
     }
     catch (const std::exception& e)
     {
@@ -84,7 +84,7 @@ void Server::handleCommunication(const int clientSock, const sockaddr_in clientA
 {
     std::cout << "New connection" << std::endl;
 
-    const auto session = new Session{
+    const auto session = new Session{ //TODO maybe replace with smart ptr
         .clientSock = clientSock,
         .clientAddress = inet_ntoa(clientAddress.sin_addr)
     };

@@ -22,7 +22,7 @@ TEST_CASE("HSET and HGET methods", "[hset/hget][kvstore method][unit]")
         REQUIRE(kv.hget("myhash", "f1") == "v2");
     }
 
-    SECTION("HsetHget empty key and empty field list")
+    SECTION("Hset Hget empty key and empty field list")
     {
         REQUIRE(kv.hget("otherhash", "f1") == std::nullopt);
         REQUIRE(kv.hget("myhash", "otherfield") == std::nullopt);
@@ -41,11 +41,14 @@ TEST_CASE("HSET and HGET commands", "[hset/hget][command handler][unit]")
 
     SECTION("HSET and HGET bad args")
     {
+        kv.lpush({"listkey", "listval"});
         REQUIRE(handleHSET(kv, {"myhash", "f1"}) == argumentError("3 or more", 2));\
         REQUIRE(handleHSET(kv, {"myhash", "f1", "v2", "f2"}) == "-ERR expected pair of fields and values");
         REQUIRE(handleHSET(kv, {}) == argumentError("3 or more", 0));
+        REQUIRE(handleHSET(kv, {"listkey", "f1", "v1"}) == "-ERR wrong type\r\n");
         REQUIRE(handleHGET(kv, {"myhash"}) == argumentError("2", 1));
         REQUIRE(handleHGET(kv, {}) == argumentError("2", 0));
+        REQUIRE(handleHGET(kv, {"listkey", "f1"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -79,10 +82,14 @@ TEST_CASE("HDEL and HEXISTS commands", "[hdel/hexists][command handler][unit]")
 
     SECTION("HDEL and HEXISTS bad args")
     {
+        kv.lpush({"listkey", "listval"});
         REQUIRE(handleHDEL(kv, {"myhash"}) == argumentError("2 or more", 1));
         REQUIRE(handleHDEL(kv, {}) == argumentError("2 or more", 0));
+        REQUIRE(handleHDEL(kv, {"listkey", "f1"}) == "-ERR wrong type\r\n");
+
         REQUIRE(handleHEXISTS(kv, {"myhash"}) == argumentError("2", 1));
         REQUIRE(handleHEXISTS(kv, {}) == argumentError("2", 0));
+        REQUIRE(handleHEXISTS(kv, {"listkey", "f1"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -124,6 +131,7 @@ TEST_CASE("HLEN command", "[hlen][command handler][unit]")
 {
     KVStore kv(false);
     kv.hset({"myhash", "f1", "v1", "f2", "v2"});
+    kv.lpush({"listkey", "listval"});
 
     SECTION("HLEN expected")
     {
@@ -135,12 +143,14 @@ TEST_CASE("HLEN command", "[hlen][command handler][unit]")
     {
         REQUIRE(handleHLEN(kv, {}) == argumentError("1", 0));
         REQUIRE(handleHLEN(kv, {"myhash", "more"}) == argumentError("1", 2));
+        REQUIRE(handleHLEN(kv, {"listkey"}) == "-ERR wrong type\r\n");
     }
 }
 TEST_CASE("HKEYS and HVALS commands", "[hkeys/hvals][command handler][unit]")
 {
     KVStore kv(false);
     kv.hset({"myhash", "f1", "v1", "f2", "v2"});
+    kv.lpush({"listkey", "listval"});
 
     SECTION("HKEYS and HVALS expected")
     {
@@ -154,8 +164,10 @@ TEST_CASE("HKEYS and HVALS commands", "[hkeys/hvals][command handler][unit]")
     {
         REQUIRE(handleHKEYS(kv, {}) == argumentError("1", 0));
         REQUIRE(handleHKEYS(kv, {"myhash", "more"}) == argumentError("1", 2));
+        REQUIRE(handleHKEYS(kv, {"listkey"}) == "-ERR wrong type\r\n");
         REQUIRE(handleHVALS(kv, {}) == argumentError("1", 0));
         REQUIRE(handleHVALS(kv, {"myhash", "more"}) == argumentError("1", 2));
+        REQUIRE(handleHVALS(kv, {"listkey"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -163,6 +175,7 @@ TEST_CASE("HMGET methods", "[hmget][kvstore method][unit]")
 {
     KVStore kv(false);
     kv.hset({"myhash", "f1", "v1", "f2", "v2", "f3", "v3"});
+
     SECTION("Hmget expected")
     {
         auto vals = kv.hmget({"myhash", "f1", "f2", "f3", "f4"});
@@ -185,6 +198,7 @@ TEST_CASE("HMGET commands", "[hmget][command handler][unit]")
 {
     KVStore kv(false);
     kv.hset({"myhash", "f1", "v1", "f2", "v2"});
+    kv.lpush({"listkey", "listval"});
 
     SECTION("HMGET expected")
     {
@@ -195,6 +209,7 @@ TEST_CASE("HMGET commands", "[hmget][command handler][unit]")
     {
         REQUIRE(handleHMGET(kv, {"myhash"}) == argumentError("2 or more", 1));
         REQUIRE(handleHMGET(kv, {}) == argumentError("2 or more", 0));
+        REQUIRE(handleHMGET(kv, {"listkey", "f1"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -224,6 +239,7 @@ TEST_CASE("HGETALL command", "[hgetall][command handler][unit]")
 {
     KVStore kv(false);
     kv.hset({"myhash", "f1", "v1", "f2", "v2"});
+    kv.lpush({"listkey", "listval"});
 
     SECTION("HGETALL returns all field-value pairs in RESP")
     {
@@ -234,5 +250,12 @@ TEST_CASE("HGETALL command", "[hgetall][command handler][unit]")
     SECTION("HGETALL on non-existing hash returns empty RESP array")
     {
         REQUIRE(handleHGETALL(kv, {"nohash"}) == "*0\r\n");
+    }
+
+    SECTION("HGETALL bad args")
+    {
+        REQUIRE(handleHGETALL(kv, {}) == argumentError("1", 0));
+        REQUIRE(handleHGETALL(kv, {"k", "more"}) == argumentError("1", 2));
+        REQUIRE(handleHGETALL(kv, {"listkey"}) == "-ERR wrong type\r\n");
     }
 }

@@ -31,7 +31,6 @@ void handleSend(int sock)
         if (input == "!q") { disconnect = true; return; }
         RESP = parseCommandToRESP(input);
 
-        std::cout << "sending...: " << RESP << std::endl; //for debug
         send(sock, RESP.c_str(), RESP.size(), 0);
     }
 }

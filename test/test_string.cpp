@@ -48,6 +48,8 @@ TEST_CASE("SET command", "[set][command handler][unit]")
     {
         REQUIRE(handleSET(kv, {"key2", "value2", "store"}) == argumentError("2", 3));
         REQUIRE(kv.get("key2") == std::nullopt);
+        kv.rpush({"k", "v"});
+        REQUIRE(handleSET(kv, {"k", "v"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -85,6 +87,9 @@ TEST_CASE("GET command", "[get][command handler][unit]")
     SECTION("GET bad args")
     {
         REQUIRE(handleGET(kv, {"b", "c"}) == argumentError("1", 2));
+        kv.rpush({"k", "v"});
+        REQUIRE(handleGET(kv, {"k"}) == "-ERR wrong type\r\n");
+
     }
 }
 
@@ -126,6 +131,8 @@ TEST_CASE("INCR command", "[incr][command handler][unit]")
     SECTION("INCR bad args")
     {
         REQUIRE(handleINCR(kv, {"c", "d"}) == argumentError("1", 2));
+        kv.rpush({"k", "1"});
+        REQUIRE(handleINCR(kv, {"k"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -167,6 +174,8 @@ TEST_CASE("DCR command", "[dcr][command handler][unit]")
     SECTION("DCR bad args")
     {
         REQUIRE(handleDCR(kv, {"c", "d"}) == argumentError("1", 2));
+        kv.rpush({"k", "1"});
+        REQUIRE(handleDCR(kv, {"k"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -220,6 +229,8 @@ TEST_CASE("INCRBY command", "[incrby][command handler][unit]")
     {
         REQUIRE(handleINCRBY(kv, {"a"}) == argumentError("2", 1));
         REQUIRE(handleINCRBY(kv, {"a", "1", "2"}) == argumentError("2", 3));
+        kv.rpush({"k", "1"});
+        REQUIRE(handleINCRBY(kv, {"k", "3"}) == "-ERR wrong type\r\n");
     }
 
     SECTION("INCRBY non-integer increment")
@@ -278,6 +289,8 @@ TEST_CASE("DCRBY command", "[dcrby][command handler][unit]")
     {
         REQUIRE(handleDCRBY(kv, {"a"}) == argumentError("2", 1));
         REQUIRE(handleDCRBY(kv, {"a", "1", "2"}) == argumentError("2", 3));
+        kv.rpush({"k", "1"});
+        REQUIRE(handleDCRBY(kv, {"k", "3"}) == "-ERR wrong type\r\n");
     }
 
     SECTION("DCRBY non-integer decrement")
@@ -355,6 +368,8 @@ TEST_CASE("APPEND command", "[append][command handler][unit]")
     {
         REQUIRE(handleAPPEND(kv, {"a"}) == argumentError("2", 1));
         REQUIRE(handleAPPEND(kv, {}) == argumentError("2", 0));
+        kv.rpush({"k", "thing"});
+        REQUIRE(handleAPPEND(kv, {"k", "word"}) == "-ERR wrong type\r\n");
     }
 }
 

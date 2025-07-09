@@ -35,6 +35,8 @@ TEST_CASE("SADD command", "[sadd][command handler][unit]")
     {
         REQUIRE(handleSADD(kv, {"myset"}) == argumentError("2 or more", 1));
         REQUIRE(handleSADD(kv, {}) == argumentError("2 or more", 0));
+        kv.rpush({"k", "v"});
+        REQUIRE(handleSADD(kv, {"k", "nv"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -69,6 +71,8 @@ TEST_CASE("SREM command", "[srem][command handler][unit]")
     {
         REQUIRE(handleSREM(kv, {"myset"}) == argumentError("2 or more", 1));
         REQUIRE(handleSREM(kv, {}) == argumentError("2 or more", 0));
+        kv.rpush({"k", "v"});
+        REQUIRE(handleSREM(kv, {"k", "nv"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -104,6 +108,8 @@ TEST_CASE("SISMEMBER command", "[sismember][command handler][unit]")
     {
         REQUIRE(handleSISMEMBER(kv, {"myset"}) == argumentError("2", 1));
         REQUIRE(handleSISMEMBER(kv, {}) == argumentError("2", 0));
+        kv.rpush({"k", "v"});
+        REQUIRE(handleSISMEMBER(kv, {"k", "nv"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -144,6 +150,8 @@ TEST_CASE("SMEMBERS command", "[smembers][command handler][unit]")
     {
         REQUIRE(handleSMEMBERS(kv, {}) == argumentError("1", 0));
         REQUIRE(handleSMEMBERS(kv, {"myset", "more"}) == argumentError("1", 2));
+        kv.rpush({"k", "v"});
+        REQUIRE(handleSMEMBERS(kv, {"k"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -185,6 +193,8 @@ TEST_CASE("SCARD command", "[scard][command handler][unit]")
     {
         REQUIRE(handleSCARD(kv, {}) == argumentError("1", 0));
         REQUIRE(handleSCARD(kv, {"myset", "more"}) == argumentError("1", 2));
+        kv.rpush({"k", "v"});
+        REQUIRE(handleSCARD(kv, {"k"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -230,5 +240,7 @@ TEST_CASE("SPOP command", "[spop][command handler][unit]")
         REQUIRE(handleSPOP(kv, {"myset", "2", "more"}) == argumentError("1 or 2", 3));
         REQUIRE(handleSPOP(kv, {}) == argumentError("1 or 2", 0));
         REQUIRE(handleSPOP(kv, {"myset", "notanumber"}) == "-ERR value is not an integer or out of range\r\n");
+        kv.rpush({"k", "v"});
+        REQUIRE(handleSPOP(kv, {"k"}) == "-ERR wrong type\r\n");
     }
 }

@@ -32,6 +32,7 @@ TEST_CASE("LPUSH and RPUSH commands", "[lpush/rpush][command handler][unit]")
 {
     KVStore kv(false);
     kv.lpush({"mylist", "a", "b"});
+    kv.set("k", "v");
 
     SECTION("LPUSH and RPUSH expected")
     {
@@ -45,6 +46,8 @@ TEST_CASE("LPUSH and RPUSH commands", "[lpush/rpush][command handler][unit]")
     {
         REQUIRE(handleLPUSH(kv, {}) == argumentError("1 or more", 0));
         REQUIRE(handleRPUSH(kv, {}) == argumentError("1 or more", 0));
+        REQUIRE(handleLPUSH(kv, {"k", "v2"}) == "-ERR wrong type\r\n");
+        REQUIRE(handleRPUSH(kv, {"k", "v3"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -71,6 +74,8 @@ TEST_CASE("LPOP and RPOP commands", "[lpop/rpop][command handler][unit]")
 {
     KVStore kv(false);
     kv.rpush({"mylist", "a", "b"});
+    kv.set("k", "v");
+
 
     SECTION("LPOP and RPOP expected")
     {
@@ -83,6 +88,8 @@ TEST_CASE("LPOP and RPOP commands", "[lpop/rpop][command handler][unit]")
     {
         REQUIRE(handleLPOP(kv, {}) == argumentError("1", 0));
         REQUIRE(handleRPOP(kv, {"mylist", "a", "b"}) == argumentError("1", 3));
+        REQUIRE(handleLPOP(kv, {"k"}) == "-ERR wrong type\r\n");
+        REQUIRE(handleRPOP(kv, {"k"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -123,6 +130,8 @@ TEST_CASE("LRANGE command", "[lrange][command handler][unit]")
     {
         REQUIRE(handleLRANGE(kv, {"mylist"}) == argumentError("3", 1));
         REQUIRE(handleLRANGE(kv, {"mylist", "b", "1"}) == "-ERR value is not an integer or out of range\r\n");
+        kv.set("k", "v");
+        REQUIRE(handleLRANGE(kv, {"k", "0", "1"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -162,6 +171,8 @@ TEST_CASE("LLEN command", "[llen][command handler][unit]")
     SECTION("LLEN bad args")
     {
         REQUIRE(handleLLEN(kv, {"mylist", "b"}) == argumentError("1", 2));
+        kv.set("k", "v");
+        REQUIRE(handleLLEN(kv, {"k"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -196,6 +207,8 @@ TEST_CASE("LINDEX command", "[lindex][command handler][unit]")
     SECTION("LINDEX bad args")
     {
         REQUIRE(handleLINDEX(kv, {"mylist"}) == argumentError("2", 1));
+        kv.set("k", "v");
+        REQUIRE(handleLINDEX(kv, {"k", "0"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -235,6 +248,8 @@ TEST_CASE("LSET command", "[lset][command handler][unit]")
     {
         REQUIRE(handleLSET(kv, {"mylist", "b", "y"}) == "-ERR value is not an integer or out of range\r\n");
         REQUIRE(handleLSET(kv, {"mylist"}) == argumentError("3", 1));
+        kv.set("k", "v");
+        REQUIRE(handleLSET(kv, {"k", "1", "a"}) == "-ERR wrong type\r\n");
     }
 }
 
@@ -275,5 +290,7 @@ TEST_CASE("LREM command", "[lrem][command handler][unit]")
     {
         REQUIRE(handleLREM(kv, {"mylist", "b", "y"}) == "-ERR value is not an integer or out of range\r\n");
         REQUIRE(handleLREM(kv, {"mylist"}) == argumentError("3", 1));
+        kv.set("k", "v");
+        REQUIRE(handleLREM(kv, {"k", "0", "a"}) == "-ERR wrong type\r\n");
     }
 }
