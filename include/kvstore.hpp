@@ -1,10 +1,7 @@
 #pragma once
 
-#include <unordered_map>
 #include <string>
 #include <optional>
-#include <mutex>
-
 #include <vector>
 #include <tbb/concurrent_hash_map.h>
 
@@ -12,7 +9,6 @@
 #include "respvalue.hpp"
 #include "snapshot.hpp"
 #include "expire.hpp"
-#include "util.hpp"
 #include "LRU.hpp"
 
 class KVStore {
@@ -24,7 +20,7 @@ public:
     std::optional<storeType> getType(const std::string& k); //Gets storeType of value
     std::optional<std::string> checkTypeError(const std::string& k, storeType expected);
     void checkExpKey(const std::string& k);
-    bool spaceLeft();
+    bool spaceLeft() const;
     void evictTill();
 
     //Persistence
@@ -84,7 +80,7 @@ public:
 private:
     bool persistenceToggle; //Originally for testing
     tbb::concurrent_hash_map<std::string,RESPValue> dict; //Main store
-    Expiration expirationManager; //For expire and ttl commands
+    Expiration expirationManager; //For key ttl handling
     Snapshot snapshotManager; //Persistence
     LRU lruManager; //Eviction on max limit reach
 

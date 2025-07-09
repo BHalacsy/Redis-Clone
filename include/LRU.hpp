@@ -5,14 +5,11 @@
 #include <iostream>
 #include <mutex>
 #include <string>
-#include <memory>
-
-#include "respvalue.hpp"
 
 class LRU {
 public:
     LRU() = default;
-    ~LRU() = default; //TODO maybe handle persistence here? Clear?
+    ~LRU() = default;
 
     void touch(const std::string& k) //Refresh in order queue
     {
@@ -28,7 +25,7 @@ public:
         }
     }
 
-    std::string evict() //Remove oldest key in queue
+    std::string evict() //Removes oldest key in order queue
     {
         std::lock_guard lock(mtx);
         if (order.empty()) //not sure if needed
@@ -60,7 +57,7 @@ public:
     }
 
 private:
-    std::list<std::string> order; //order queue
-    std::unordered_map<std::string, std::list<std::string>::iterator> keyToOrder; //key->iterator in order queue
+    std::list<std::string> order; //Order queue
+    std::unordered_map<std::string, std::list<std::string>::iterator> keyToOrder; //Key->iterator in order queue
     std::mutex mtx;
 };

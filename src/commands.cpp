@@ -11,7 +11,6 @@
 
 Commands strToCmd(const std::string& cmd)
 {
-
     if (cmd == "PING") return Commands::PING;
     if (cmd == "ECHO") return Commands::ECHO;
     if (cmd == "DEL") return Commands::DEL;
@@ -58,7 +57,7 @@ Commands strToCmd(const std::string& cmd)
     if (cmd == "PUBLISH") return Commands::PUBLISH;
     if (cmd == "SUBSCRIBE") return Commands::SUBSCRIBE;
     if (cmd == "UNSUBSCRIBE") return Commands::UNSUBSCRIBE;
-    // if (cmd == "CONFIG") return Commands::CONFIG;
+    if (cmd == "CONFIG") return Commands::CONFIG;
     if (cmd == "TYPE") return Commands::TYPE;
     if (cmd == "SAVE") return Commands::SAVE;
     return Commands::UNKNOWN;
@@ -161,7 +160,7 @@ std::string handleDCRBY(KVStore& kvstore, const std::vector<std::string>& args)
 std::string handleMGET(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.empty()) return argumentError("1 or more", args.size());
-    //TODO checkTypeError every key?
+
 
     const auto vals = kvstore.mget(args);
     std::string resp = std::format("*{}\r\n", vals.size());
@@ -169,7 +168,6 @@ std::string handleMGET(KVStore& kvstore, const std::vector<std::string>& args)
     {
         if (i == std::nullopt) resp += std::format("$-1\r\n");
         else resp += std::format("${}\r\n{}\r\n", i->length(), *i);
-
     }
     return resp;
 }
@@ -521,12 +519,11 @@ std::string handleDISCARD(Session* session, const std::vector<std::string>& args
     return "+OK\r\n";
 }
 
-//Misc commands
-// std::string handleCONFIG(const std::vector<std::string>& args) //TODO remove or implement (only for benchmark start)
-// {
-//     if (args[0] == "GET") return "*14\r\n$4\r\nsave\r\n$4\r\n60 0\r\n$10\r\nappendonly\r\n$2\r\nno\r\n$7\r\ntimeout\r\n$1\r\n0\r\n$9\r\ndatabases\r\n$1\r\n1\r\n$11\r\nrequirepass\r\n$0\r\n\r\n$9\r\nmaxmemory\r\n$1\r\n0\r\n$3\r\ndir\r\n$5\r\n./data\r\n";
-//     return "-ERR not handled";
-// }
+std::string handleCONFIG(const std::vector<std::string>& args) //TODO remove or actually implement (only for benchmark start)
+{
+    if (args[0] == "GET") return "*14\r\n$7\r\ntimeout\r\n$1\r\n0\r\n$9\r\ndatabases\r\n$1\r\n1\r\n$11\r\nrequirepass\r\n$0\r\n\r\n$9\r\nmaxmemory\r\n$1\r\n0\r\n$3\r\ndir\r\n$5\r\n./data\r\n";
+    return "-ERR not handled";
+}
 std::string handleTYPE(KVStore& kvstore, const std::vector<std::string>& args)
 {
     if (args.size() != 1) return argumentError("1", args.size());
@@ -539,10 +536,10 @@ std::string handleTYPE(KVStore& kvstore, const std::vector<std::string>& args)
             case storeType::SET: return "+set\r\n";
             case storeType::HASH: return "+hash\r\n";
             default:
-                return "+none\r\n"; //No such key
+                return "+none\r\n";
         }
     }
-    return "+none\r\n"; //No type
+    return "+none\r\n"; // Fall back
 }
 std::string handleSAVE(KVStore& kvstore, const std::vector<std::string>& args)
 {

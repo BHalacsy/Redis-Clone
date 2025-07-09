@@ -16,7 +16,7 @@ public:
 private:
     std::unordered_map<std::string, std::vector<int>> channels; //Holds all socks subbed
     std::unordered_map<int, std::vector<std::string>> users; //Holds all channels subbed to (For tracking sub count per user)
-    std::mutex mtx; //Thread lock
+    std::mutex mtx;
 
     static std::string formatMessage(const std::string& channel, const std::string& message); //Used for pubing
 };

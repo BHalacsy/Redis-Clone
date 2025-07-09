@@ -17,7 +17,7 @@
 #include "session.hpp"
 
 
-Server::Server() : pool(POOL_SIZE), kvstore(true, "dump.rdb", KEY_LIMIT) //TODO change to use default in config
+Server::Server() : pool(POOL_SIZE), kvstore(true, SAVEFILE_PATH, KEY_LIMIT) //Config.h
 {
     std::cout << "Server launch!" << std::endl;
     this->sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -141,7 +141,6 @@ std::string Server::handleCommand(const std::vector<std::string>& command, Sessi
 
     switch (cmd)
     {
-
         case Commands::PING: return handlePING(arguments);
         case Commands::ECHO: return handleECHO(arguments);
         case Commands::DEL: return handleDEL(kvstore, arguments);
@@ -193,8 +192,9 @@ std::string Server::handleCommand(const std::vector<std::string>& command, Sessi
 
         case Commands::MULTI: return handleMULTI(session, arguments);
         case Commands::DISCARD: return handleDISCARD(session, arguments);
-        case Commands::EXEC: {
-                //Done here because I do not want to include server in commands.cpp
+        case Commands::EXEC:
+            {
+                //Done here because I would need to include server.cpp in commands.cpp for recursive calls to handleCommand
                 if (!session->transActive)
                 {
                     return "-ERR EXEC without MULTI\r\n";
@@ -214,13 +214,11 @@ std::string Server::handleCommand(const std::vector<std::string>& command, Sessi
                 return resp;
             }
 
-        // case Commands::CONFIG: return handleCONFIG(arguments);
+        case Commands::CONFIG: return handleCONFIG(arguments);
         case Commands::TYPE: return handleTYPE(kvstore, arguments);
         case Commands::SAVE: return handleSAVE(kvstore, arguments);
-
-
         default:
             std::cerr << "Command not handled: " << command[0] << std::endl;
-            return std::format("-ERR unknown command '{}'", command[0]);//send error
+            return std::format("-ERR unknown command '{}'", command[0]);
     }
 }

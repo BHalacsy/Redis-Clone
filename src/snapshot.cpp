@@ -7,10 +7,7 @@
 #include "snapshot.hpp"
 #include "util.hpp"
 
-Snapshot::Snapshot(const std::string& fileName) : filePath((std::filesystem::path("data") / fileName).string())
-{
-
-}
+Snapshot::Snapshot(const std::string& fileName) : filePath((std::filesystem::path("data") / fileName).string()) {}
 
 void Snapshot::load(tbb::concurrent_hash_map<std::string, RESPValue>& dict) const
 {
@@ -30,7 +27,6 @@ void Snapshot::load(tbb::concurrent_hash_map<std::string, RESPValue>& dict) cons
         std::cerr << "Fail in snapshot load(): " << e.what() << std::endl;
     }
 }
-
 void Snapshot::save(const tbb::concurrent_hash_map<std::string, RESPValue>& dict) const
 {
     try
@@ -47,7 +43,6 @@ void Snapshot::save(const tbb::concurrent_hash_map<std::string, RESPValue>& dict
         std::cerr << "Fail in snapshot save(): " << e.what() << std::endl;
     }
 }
-
 void Snapshot::clear() const
 {
     std::ofstream clearDisk(filePath, std::ios::binary | std::ios::trunc);

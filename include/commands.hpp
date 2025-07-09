@@ -16,14 +16,14 @@ enum class Commands
     HSET, HGET, HDEL, HEXISTS, HLEN, HKEYS, HVALS, HMGET, HGETALL,
     PUBLISH, SUBSCRIBE, UNSUBSCRIBE,
     MULTI, EXEC, DISCARD,
-    //TODO mem management, info and config OBJECT idle timekey???
-    /*CONFIG,*/ TYPE, SAVE,
+    CONFIG, TYPE, SAVE,
     UNKNOWN
+    //TODO INFO, BRPOP for task queues, LMOVE
 };
 
 auto strToCmd(const std::string& cmd) -> Commands;
 
-// Basic commands
+//Basic commands
 std::string handlePING(const std::vector<std::string>& args);
 std::string handleECHO(const std::vector<std::string>& args);
 std::string handleDEL(KVStore& kvstore, const std::vector<std::string>& args);
@@ -85,7 +85,7 @@ std::string handleMULTI(Session* session, const std::vector<std::string>& args);
 std::string handleEXEC(Session* session, const std::vector<std::string>& args);
 std::string handleDISCARD(Session* session, const std::vector<std::string>& args);
 
-//Misc commands
-//std::string handleCONFIG(const std::vector<std::string>& args);
+// Misc commands
+std::string handleCONFIG(const std::vector<std::string>& args);
 std::string handleTYPE(KVStore& kvstore, const std::vector<std::string>& args);
 std::string handleSAVE(KVStore& kvstore, const std::vector<std::string>& args);

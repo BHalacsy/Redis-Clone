@@ -43,13 +43,14 @@
 //     }
 // }
 
-
+//Parsing
 inline std::string readLine(const char* buffer, const size_t len, size_t& offset)
 {
     const size_t readStart = offset;
     while (offset + 1 < len)
     {
-        if (buffer[offset] == '\r' && buffer[offset + 1] == '\n') {
+        if (buffer[offset] == '\r' && buffer[offset + 1] == '\n')
+        {
             std::string line(buffer + readStart, offset - readStart);
             offset += 2;
             return line;
@@ -74,6 +75,8 @@ inline std::vector<std::string> splitSpaces(const std::string& line)
 inline std::string argumentError(std::string expected, size_t got)
 {
     return std::format("-ERR command expected {} arguments, got {} instead\r\n", expected, got);
+    //TODO Change to conform to redis standard and rem this function and just ret
+    //"-ERR wrong number of arguments for <command> command\r\n"
 }
 
 
@@ -121,4 +124,11 @@ inline tbb::concurrent_hash_map<std::string, RESPValue> convertToConcurrentMap(c
 //         return static_cast<unsigned int>(pages * page_size); //Bytes
 //     }
 //     return 0;
+// }
+
+// inline unsigned int getThreadCount()
+// {
+//     const unsigned int threads = std::thread::hardware_concurrency();
+//     std::cout << "Available hardware threads: " << threads << std::endl;
+//     return threads;
 // }

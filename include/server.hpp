@@ -26,7 +26,7 @@ private:
 	std::string hostIP = HOST_IP;
 
 	bool running = true;
-	boost::asio::thread_pool pool;
+	boost::asio::thread_pool pool; //TODO maybe convert to use epoll like redis
 
 	PubSub pubsubManager;
 	KVStore kvstore;

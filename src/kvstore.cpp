@@ -3,7 +3,6 @@
 #include <filesystem>
 #include <utility>
 #include <boost/variant.hpp>
-#include <tbb/concurrent_hash_map.h>
 
 #include "kvstore.hpp"
 #include "respvalue.hpp"
@@ -15,6 +14,7 @@ KVStore::KVStore(const bool persist, const std::string& fileName, const int maxK
     for (auto& [k,v] : dict)
     {
         lruManager.touch(k);
+        currSize = 0;
         ++currSize;
     }
 }
@@ -22,11 +22,9 @@ KVStore::KVStore(const bool persist, const std::string& fileName, const int maxK
 KVStore::~KVStore()
 {
     if (persistenceToggle) saveToDisk();
-    //TODO lru erase all on shutdown
 }
 
-//Helpers
-std::optional<storeType> KVStore::getType(const std::string& k)
+std::optional<storeType> KVStore::getType(const std::string& k) //Also used in TYPE
 {
     tbb::concurrent_hash_map<std::string, RESPValue>::const_accessor accessor;
     checkExpKey(k);
@@ -40,7 +38,6 @@ std::optional<std::string> KVStore::checkTypeError(const std::string& k, const s
     if (type && *type != expected) return "-ERR wrong type\r\n";
     return std::nullopt;
 }
-
 void KVStore::checkExpKey(const std::string& k)
 {
     if (const auto removed = expirationManager.removeKeyExp(k))
@@ -49,14 +46,12 @@ void KVStore::checkExpKey(const std::string& k)
         dict.erase(removed.value());
     }
 }
-bool KVStore::spaceLeft()
+bool KVStore::spaceLeft() const
 {
     size_t currKeyCount = currSize.load();
     std::cout << "Using: " << currSize.load() << " Allowed: " << maxSize << std::endl;
     return currKeyCount < maxSize;
 }
-
-//change to maybe get actual value of needed deletions and delete as needed
 void KVStore::evictTill()
 {
     while (!spaceLeft())
@@ -66,16 +61,14 @@ void KVStore::evictTill()
         std::cout << "Evicted: " << evicted << std::endl;
         dict.erase(evicted);
     }
-}
+} //TODO change to maybe get actual value of needed deletions and delete as needed and not loop
 
-
-//Persistence
 void KVStore::loadFromDisk()
 {
     try
     {
         snapshotManager.load(dict);
-        expirationManager.removeAllExp(dict, lruManager);
+        expirationManager.removeAllExp();
     }
     catch (std::exception& e) {
         std::cerr << "Fail in loadFromDisk(): " << e.what() << std::endl;
@@ -83,7 +76,7 @@ void KVStore::loadFromDisk()
 }
 void KVStore::saveToDisk()
 {
-    expirationManager.removeAllExp(dict, lruManager);
+    expirationManager.removeAllExp();
     try
     {
         snapshotManager.save(dict);
@@ -92,7 +85,6 @@ void KVStore::saveToDisk()
         std::cerr << "Fail in saveToDisk(): " << e.what() << std::endl;
     }
 }
-
 
 int KVStore::del(const std::vector<std::string>& args)
 {
@@ -283,7 +275,15 @@ std::vector<std::optional<std::string>> KVStore::mget(const std::vector<std::str
     {
         // checkExpKey(i); //Commented out because get already does it
         // lruManager.touch(i);
-        ret.push_back(get(i));
+        if (auto err = checkTypeError(i, storeType::STR))
+        {
+            ret.emplace_back(std::nullopt);
+        }
+        else
+        {
+
+            ret.push_back(get(i));
+        }
     }
     return ret;
 }
@@ -306,7 +306,6 @@ int KVStore::append(const std::string& k, const std::string& v)
 
     return static_cast<int>(boost::get<std::string>(accessor->second.value).size());
 }
-
 
 bool KVStore::expire(const std::string& k, const int s)
 {

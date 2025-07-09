@@ -11,7 +11,6 @@ int PubSub::subscribe(const std::string& channel, const int sock)
     users[sock].push_back(channel);
     return static_cast<int>(users[sock].size());
 }
-
 int PubSub::publish(const std::string& channel, const std::string& message)
 {
     std::lock_guard lock(mtx);
@@ -29,7 +28,6 @@ int PubSub::publish(const std::string& channel, const std::string& message)
     }
     return count;
 }
-
 int PubSub::unsubscribe(const std::string& channel, const int sock)
 {
     std::lock_guard lock(mtx);
@@ -43,7 +41,6 @@ int PubSub::unsubscribe(const std::string& channel, const int sock)
     std::erase(users[sock], channel);
     return static_cast<int>(users[sock].size());
 }
-
 void PubSub::unsubscribeAll(const int sock)
 {
     std::lock_guard lock(mtx);
@@ -59,7 +56,6 @@ void PubSub::unsubscribeAll(const int sock)
     }
     users.erase(sock);
 }
-
 
 std::string PubSub::formatMessage(const std::string& channel, const std::string& message) {
     return std::format("*3\r\n$7\r\nmessage\r\n${}\r\n{}\r\n${}\r\n{}\r\n", channel.size(), channel, message.size(), message);
