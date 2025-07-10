@@ -19,7 +19,7 @@ The Redis clone replicates the core features and architecture of [Redis](https:/
 - **Transaction** support command queueing
 - **LRU eviction** for memory management
 - **Snapshotting** with Boost binary serialization (Persistence)
-- Thread-safe access with **fine-grained locking** with TBB
+- Thread-safe access with **fine-grained locking** (TBB)
 - **Catch2 unit testing** with CI workflows
 
 ## Layout
@@ -94,6 +94,12 @@ The client:
 
 ### Usage
 For specifics on various implemented redis commands I recommend looking at the [redis docs](https://redis.io/docs/latest/commands) for what you may be looking for.
+
+### Benchmarking
+Using ```redis-benchmark``` we can compare our clone directly with the real open source redis 6.2.  
+The following benchmark was ran on both ```redis-benchmark -t set,get -n 1000000```:
+
+
 
 ## Future plans
 
