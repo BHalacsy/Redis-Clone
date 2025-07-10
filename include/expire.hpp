@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <chrono>
 #include <mutex>
+#include <tbb/concurrent_hash_map.h>
 
 
 class Expiration{
@@ -16,6 +17,5 @@ public:
     void clear();
 
 private:
-    std::unordered_map<std::string, std::chrono::steady_clock::time_point> expTable; //Key->Time of expiration
-    std::mutex mtx;
+    tbb::concurrent_hash_map<std::string, std::chrono::steady_clock::time_point> expTable; //Key->Time of expiration
 };

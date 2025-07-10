@@ -17,9 +17,9 @@ public:
     ~KVStore();
 
     //Helpers
-    std::optional<storeType> getType(const std::string& k); //Gets storeType of value
-    std::optional<std::string> checkTypeError(const std::string& k, storeType expected);
-    void checkExpKey(const std::string& k);
+    std::optional<storeType> getType(const std::string& k); //Gets storeType of value used in TYPE command too
+    std::optional<std::string> checkTypeError(const std::string& k, storeType expected); //Err if not expected
+    void checkExpKey(const std::string& k); //Checks if
     bool spaceLeft() const;
     void evictTill();
 

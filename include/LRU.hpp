@@ -5,6 +5,7 @@
 #include <iostream>
 #include <mutex>
 #include <string>
+#include <tbb/concurrent_hash_map.h>
 
 class LRU {
 public:
@@ -13,21 +14,21 @@ public:
 
     void touch(const std::string& k) //Refresh in order queue
     {
-        std::lock_guard lock(mtx);
-        if (const auto found = keyToOrder.find(k); found != keyToOrder.end())
+        tbb::concurrent_hash_map<std::string, std::list<std::string>::iterator>::accessor accessor;
+        if (!keyToOrder.find(accessor, k))
         {
-            order.splice(order.begin(), order, found->second);
+            order.push_front(k);
+            keyToOrder.insert(accessor,k);
+            accessor->second = order.begin();
         }
         else
         {
-            order.push_front(k);
-            keyToOrder[k] = order.begin();
+            order.splice(order.begin(), order, accessor->second);
         }
     }
 
     std::string evict() //Removes oldest key in order queue
     {
-        std::lock_guard lock(mtx);
         if (order.empty()) //not sure if needed
         {
             std::cerr << "trying to evict when empty" << std::endl;
@@ -42,22 +43,21 @@ public:
 
     void erase(const std::string& k)
     {
-        std::lock_guard lock(mtx);
-        if (const auto found = keyToOrder.find(k); found != keyToOrder.end()) {
-            order.erase(found->second);
-            keyToOrder.erase(found);
+        tbb::concurrent_hash_map<std::string, std::list<std::string>::iterator>::accessor accessor;
+        if (keyToOrder.find(accessor, k))
+        {
+            order.erase(accessor->second);
+            keyToOrder.erase(accessor);
         }
     }
 
     void clear()
     {
-        std::lock_guard lock(mtx);
         order.clear();
         keyToOrder.clear();
     }
 
 private:
     std::list<std::string> order; //Order queue
-    std::unordered_map<std::string, std::list<std::string>::iterator> keyToOrder; //Key->iterator in order queue
-    std::mutex mtx;
+    tbb::concurrent_hash_map<std::string, std::list<std::string>::iterator> keyToOrder; //Key->iterator in order queue
 };

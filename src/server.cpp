@@ -29,11 +29,8 @@ Server::Server() : pool(POOL_SIZE), kvstore(true, SAVEFILE_PATH, KEY_LIMIT) //Co
 
     try
     {
-        if (bind(this->sock, reinterpret_cast<sockaddr*>(&sockAddress), sizeof(sockAddress)) != 0)
-        {
-            throw std::runtime_error("Server bind failed");
-        }
-        if (listen(this->sock, 5) != 0) { throw std::runtime_error("Server listen failed"); }
+        if (bind(this->sock, reinterpret_cast<sockaddr*>(&sockAddress), sizeof(sockAddress)) != 0) throw std::runtime_error("Server bind failed");
+        if (listen(this->sock, 5) != 0) throw std::runtime_error("Server listen failed");
         std::cout << "Listening on: " << hostIP << " : " << servPort << std::endl;
     }
     catch (const std::exception& e)
@@ -51,7 +48,7 @@ Server::~Server()
 
 void Server::start()
 {
-    std::thread snapShotPerMinute([this]
+    std::thread snapshotTimer([this]
     {
         while (running)
         {
@@ -72,7 +69,7 @@ void Server::start()
             handleCommunication(connectionSock, connectionAddress);
         });
     }
-    snapShotPerMinute.join();
+    snapshotTimer.join();
 }
 
 void Server::stop()
@@ -90,27 +87,29 @@ void Server::handleCommunication(const int clientSock, const sockaddr_in clientA
             .clientAddress = inet_ntoa(clientAddress.sin_addr)
     };
 
-    char buffer[4096]; //Can be any number really
+    char buffer[4096];
     while (true)
     {
         std::string resp;
         try
         {
-            //receive
+            //In
             const ssize_t bytesRead = recv(clientSock, &buffer, sizeof(buffer), 0);
             if (bytesRead <= 0) break;
 
-            //append to any halved commands, parse all in pipeline return cmd, get not processed commands for next recv
+            //Append to any halved commands, parse all in pipeline return cmd(s)
             session->partialCommand.append(buffer, bytesRead);
             size_t offset = 0;
             std::vector<std::vector<std::string>> commands = parseRESPPipeline(session->partialCommand.c_str(), session->partialCommand.size(), offset);
             session->partialCommand = session->partialCommand.substr(offset);
 
-            //handle and send
+            //Handle
             for (const auto& command : commands)
             {
                 resp += handleCommand(command, session);
             }
+
+            //Out
             send(clientSock, resp.c_str(), resp.size(), 0);
         } catch (const std::exception& e) {
             std::cerr << "Error during communication: " << e.what() << std::endl;
@@ -132,6 +131,7 @@ std::string Server::handleCommand(const std::vector<std::string>& command, Sessi
     {
         return "-ERR command line empty\r\n";
     }
+
     const Commands cmd = strToCmd(command[0]);
     if (session->transActive && cmd != Commands::EXEC && cmd != Commands::DISCARD)
     {
@@ -193,26 +193,26 @@ std::string Server::handleCommand(const std::vector<std::string>& command, Sessi
         case Commands::MULTI: return handleMULTI(session, arguments);
         case Commands::DISCARD: return handleDISCARD(session, arguments);
         case Commands::EXEC:
+        {
+            //Done here because I would need to include server.cpp in commands.cpp for recursive calls to handleCommand
+            if (!session->transActive)
             {
-                //Done here because I would need to include server.cpp in commands.cpp for recursive calls to handleCommand
-                if (!session->transActive)
-                {
-                    return "-ERR EXEC without MULTI\r\n";
-                }
-                const auto queue = std::move(session->transQueue);
-
-                session->transActive = false; //Must so EXEC-ed commands are not queued again
-                session->transQueue.clear();
-
-                std::string resp = "*" + std::to_string(queue.size()) + "\r\n";
-
-                for (const auto& i : queue)
-                {
-                    assert(strToCmd(i[0]) != Commands::EXEC && "EXEC should never be in transaction queue!");
-                    resp += handleCommand(i, session);
-                }
-                return resp;
+                return "-ERR EXEC without MULTI\r\n";
             }
+            const auto queue = std::move(session->transQueue);
+
+            session->transActive = false;
+            session->transQueue.clear();
+
+            std::string resp = "*" + std::to_string(queue.size()) + "\r\n";
+
+            for (const auto& i : queue)
+            {
+                assert(strToCmd(i[0]) != Commands::EXEC && "EXEC should never be in transaction queue!");
+                resp += handleCommand(i, session);
+            }
+            return resp;
+        }
 
         case Commands::CONFIG: return handleCONFIG(arguments);
         case Commands::TYPE: return handleTYPE(kvstore, arguments);

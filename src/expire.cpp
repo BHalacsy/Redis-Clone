@@ -11,40 +11,46 @@
 
 void Expiration::setExpiry(const std::string& key, int seconds)
 {
-    std::lock_guard lock(mtx);
-    expTable[key] = std::chrono::steady_clock::now() + std::chrono::seconds(seconds);
+    tbb::concurrent_hash_map<std::string, std::chrono::steady_clock::time_point>::accessor accessor;
+
+    auto val  = std::chrono::steady_clock::now() + std::chrono::seconds(seconds);
+    if (!expTable.find(accessor, key)) expTable.insert(accessor, key);
+
+    accessor->second = val;
 }
 
 int Expiration::getTTL(const std::string& key)
 {
-    std::lock_guard lock(mtx);
-    const auto found = expTable.find(key);
-    if (found == expTable.end()) return -1;
-    const auto dur = found->second - std::chrono::steady_clock::now();
+    tbb::concurrent_hash_map<std::string, std::chrono::steady_clock::time_point>::accessor accessor;
+
+    if (!expTable.find(accessor, key)) return -1;
+
+    const auto dur = accessor->second - std::chrono::steady_clock::now();
     return static_cast<int>(std::chrono::duration_cast<std::chrono::seconds>(dur).count());
 }
 
 void Expiration::removeAllExp()
 {
-    std::lock_guard lock(mtx);
     for (auto i = expTable.begin(); i != expTable.end();)
     {
-        if (std::chrono::steady_clock::now() >= i->second)
+        tbb::concurrent_hash_map<std::string, std::chrono::steady_clock::time_point>::accessor accessor;
+        const std::string& key = i->first;
+
+        if (expTable.find(accessor, key) && std::chrono::steady_clock::now() >= accessor->second)
         {
-            i = expTable.erase(i);
+            expTable.erase(accessor);
         }
-        else ++i;
+        ++i;
     }
 }
 
 std::optional<std::string> Expiration::removeKeyExp(const std::string& key)
 {
-    std::lock_guard lock(mtx);
-    if (const auto found = expTable.find(key); found != expTable.end() && std::chrono::steady_clock::now() >= found->second)
+    tbb::concurrent_hash_map<std::string, std::chrono::steady_clock::time_point>::accessor accessor;
+    if (expTable.find(accessor, key) && std::chrono::steady_clock::now() >= accessor->second)
     {
-
-        auto keyCopy = found->first;
-        expTable.erase(found);
+        auto keyCopy = accessor->first;
+        expTable.erase(accessor);
         return keyCopy;
     }
     return std::nullopt;
@@ -52,13 +58,11 @@ std::optional<std::string> Expiration::removeKeyExp(const std::string& key)
 
 void Expiration::erase(const std::string& key)
 {
-    std::lock_guard lock(mtx);
     expTable.erase(key);
 }
 
 void Expiration::clear()
 {
-    std::lock_guard lock(mtx);
     expTable.clear();
 }
 
