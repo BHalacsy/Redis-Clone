@@ -1,7 +1,6 @@
 # Redis-Clone
-Making a Redis clone from scratch using C++. Inspired by the build your own x repo.  
-The Redis clone replicates the core features and architecture of [Redis](https://redis.io/docs/latest/), an in-memory data store  
-supporting RESP, Pub/Sub messaging and various data structures.
+Making a Redis clone from scratch using C++. Originally inspired by the [build your own x repo](https://github.com/codecrafters-io/build-your-own-x).  
+The Redis clone replicates the core features and architecture of [Redis](https://redis.io/docs/latest/), an in-memory data store supporting RESP, Pub/Sub messaging and various data structures.
 
 ## Features
 - **Concurrent** TCP connection with **RESP protocol** (Thread pool with Boost)
@@ -97,7 +96,18 @@ The client:
 For specifics on various implemented redis commands I recommend looking at the [redis docs](https://redis.io/docs/latest/commands) for what you may be looking for.
 
 ## Future plans
+
+### TODO
+- Implement blocking lists
+- Implement AOF persistence
+- Expiration persistence
+- Other commands...
+
+### Integration
+
 I would like to down the line, implement the [Blocking operations](https://redis.io/docs/latest/develop/data-types/lists/#blocking-operations-on-lists) for task queueing with something like [Celery](https://docs.celeryq.dev/en/main/getting-started/introduction.html).  
 Also plan on making my own full-stack portfolio website with the main database being my redis-clone.  
-Probably will dockerize it. TBD.  
-Anybody who wants to fidget with it feel free.
+Probably will dockerize it.
+
+### Pull requests
+Anybody who wants to fidget with it feel free. PRs and other feedback are welcome.

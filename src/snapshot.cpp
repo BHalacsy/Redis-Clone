@@ -18,10 +18,10 @@ void Snapshot::load(tbb::concurrent_hash_map<std::string, RESPValue>& dict) cons
         if (!readFromFile) return;
 
         boost::archive::binary_iarchive binFile(readFromFile);
+        std::cout << "Loading from: " << filePath << std::endl;
         binFile >> readMap;
 
         dict = convertToConcurrentMap(readMap);
-
     }
     catch (std::exception& e) {
         std::cerr << "Fail in snapshot load(): " << e.what() << std::endl;
@@ -37,13 +37,10 @@ void Snapshot::save(const tbb::concurrent_hash_map<std::string, RESPValue>& dict
         std::unordered_map<std::string, RESPValue> writeMap = convertToUnorderedMap(dict);
 
         boost::archive::binary_oarchive binFile(writeToFile);
+        std::cout << "Saving to: " << filePath << std::endl;
         binFile << writeMap;
     }
     catch (std::exception& e) {
         std::cerr << "Fail in snapshot save(): " << e.what() << std::endl;
     }
-}
-void Snapshot::clear() const
-{
-    std::ofstream clearDisk(filePath, std::ios::binary | std::ios::trunc);
 }

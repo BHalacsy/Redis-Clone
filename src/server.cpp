@@ -34,7 +34,7 @@ Server::Server() : pool(POOL_SIZE), kvstore(true, SAVEFILE_PATH, KEY_LIMIT) //Co
             throw std::runtime_error("Server bind failed");
         }
         if (listen(this->sock, 5) != 0) { throw std::runtime_error("Server listen failed"); }
-        std::cout << "Listening on: " << hostIP << " : " << servPort << std::endl; //TODO using logging instead of cout and cerr?
+        std::cout << "Listening on: " << hostIP << " : " << servPort << std::endl;
     }
     catch (const std::exception& e)
     {
@@ -67,6 +67,7 @@ void Server::start()
 
         std::cout << "Waiting for new connections..." << std::endl;
         int connectionSock = accept(this->sock, reinterpret_cast<sockaddr*>(&connectionAddress), &addLen);
+        if (connectionSock == -1) break;
         boost::asio::post(pool,[this, connectionSock, connectionAddress]() {
             handleCommunication(connectionSock, connectionAddress);
         });
@@ -82,15 +83,14 @@ void Server::stop()
 
 void Server::handleCommunication(const int clientSock, const sockaddr_in clientAddress)
 {
-    std::cout << "New connection" << std::endl;
+    std::cout << "New connection from sock: " << clientSock << std::endl;
 
     const auto session = new Session{ //TODO maybe replace with smart ptr
-        .clientSock = clientSock,
-        .clientAddress = inet_ntoa(clientAddress.sin_addr)
+            .clientSock = clientSock,
+            .clientAddress = inet_ntoa(clientAddress.sin_addr)
     };
 
-    char buffer[4096];
-
+    char buffer[4096]; //Can be any number really
     while (true)
     {
         std::string resp;
@@ -118,6 +118,7 @@ void Server::handleCommunication(const int clientSock, const sockaddr_in clientA
         }
     }
     pubsubManager.unsubscribeAll(session->clientSock);
+    std::cout << "Closed connection from sock: " << clientSock << std::endl;
     close(clientSock);
     delete session;
 }
@@ -129,7 +130,6 @@ std::string Server::handleCommand(const std::vector<std::string>& command, Sessi
 
     if (command.empty())
     {
-        std::cerr << "Command empty" << std::endl;
         return "-ERR command line empty\r\n";
     }
     const Commands cmd = strToCmd(command[0]);

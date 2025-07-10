@@ -86,6 +86,6 @@ private:
 
     //Both sizes are just key count
     size_t maxSize = KEY_LIMIT; //config.h
-    std::atomic<size_t> currSize{0};
+    std::atomic<size_t> currSize{1};
 
 };

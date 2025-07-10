@@ -7,6 +7,8 @@
 #include <mutex>
 
 
+//TODO expiration is not persistent, meaning keys with ttl lose the ttl and are just saved
+
 void Expiration::setExpiry(const std::string& key, int seconds)
 {
     std::lock_guard lock(mtx);

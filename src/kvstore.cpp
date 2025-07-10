@@ -14,8 +14,7 @@ KVStore::KVStore(const bool persist, const std::string& fileName, const int maxK
     for (auto& [k,v] : dict)
     {
         lruManager.touch(k);
-        currSize = 0;
-        ++currSize;
+        currSize.fetch_add(1);
     }
 }
 
@@ -24,7 +23,7 @@ KVStore::~KVStore()
     if (persistenceToggle) saveToDisk();
 }
 
-std::optional<storeType> KVStore::getType(const std::string& k) //Also used in TYPE
+std::optional<storeType> KVStore::getType(const std::string& k)
 {
     tbb::concurrent_hash_map<std::string, RESPValue>::const_accessor accessor;
     checkExpKey(k);
@@ -49,7 +48,7 @@ void KVStore::checkExpKey(const std::string& k)
 bool KVStore::spaceLeft() const
 {
     size_t currKeyCount = currSize.load();
-    std::cout << "Using: " << currSize.load() << " Allowed: " << maxSize << std::endl;
+    std::cout << "Using: " << currSize.load() << " keys Max allowed: " << maxSize << std::endl; //TODO rem only for demo
     return currKeyCount < maxSize;
 }
 void KVStore::evictTill()
@@ -58,7 +57,7 @@ void KVStore::evictTill()
     {
         std::string evicted = lruManager.evict();
         currSize.fetch_sub(1);
-        std::cout << "Evicted: " << evicted << std::endl;
+        std::cout << "Evicted: " << evicted << std::endl; //TODO rem only for demo
         dict.erase(evicted);
     }
 } //TODO change to maybe get actual value of needed deletions and delete as needed and not loop
@@ -68,7 +67,6 @@ void KVStore::loadFromDisk()
     try
     {
         snapshotManager.load(dict);
-        expirationManager.removeAllExp();
     }
     catch (std::exception& e) {
         std::cerr << "Fail in loadFromDisk(): " << e.what() << std::endl;
@@ -121,7 +119,7 @@ void KVStore::flushall()
     expirationManager.clear();
     lruManager.clear();
     dict.clear();
-    snapshotManager.clear();
+    if (persistenceToggle) saveToDisk();
 }
 
 bool KVStore::set(const std::string& k, const std::string& v)
@@ -281,7 +279,6 @@ std::vector<std::optional<std::string>> KVStore::mget(const std::vector<std::str
         }
         else
         {
-
             ret.push_back(get(i));
         }
     }

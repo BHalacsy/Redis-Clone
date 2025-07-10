@@ -63,7 +63,6 @@ Commands strToCmd(const std::string& cmd)
     return Commands::UNKNOWN;
 }
 
-
 std::string handlePING(const std::vector<std::string>& args)
 {
     if (args.size() > 1) return argumentError("1 or none", args.size());

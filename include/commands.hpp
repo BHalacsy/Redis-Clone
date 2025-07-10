@@ -18,7 +18,7 @@ enum class Commands
     MULTI, EXEC, DISCARD,
     CONFIG, TYPE, SAVE,
     UNKNOWN
-    //TODO INFO, BRPOP for task queues, LMOVE
+    //TODO INFO, BRPOP for task queues, LMOVE, KEYS, RENAME...
 };
 
 auto strToCmd(const std::string& cmd) -> Commands;

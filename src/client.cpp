@@ -7,7 +7,6 @@
 #include <cstring>
 #include <thread>
 #include <atomic>
-#include <chrono>
 
 #include "parser.hpp"
 
@@ -42,7 +41,7 @@ void handleRecv(int sock)
     {
         std::memset(buffer, 0, sizeof(buffer));
         ssize_t recved = recv(sock, buffer, sizeof(buffer) - 1, 0);
-        if (recved > 0) std::cout << "SERVER SAYS: " << buffer << std::endl;
+        if (recved > 0) std::cout << "Server responds: " << buffer << std::endl;
         else
         {
             std::cout << "Server close for connections..." << std::endl;
@@ -69,7 +68,7 @@ int main()
             std::this_thread::sleep_for(std::chrono::seconds(2));
         }
     } while (connected < 0);
-    //TODO implement handshake and reconnecting?
+    //TODO implement auto reconnecting?
     std::cout << "Connected!" << std::endl;
 
     std::thread sender(handleSend, servSock);
