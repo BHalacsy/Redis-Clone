@@ -98,8 +98,11 @@ For specifics on various implemented redis commands I recommend looking at the [
 ### Benchmarking
 Using ```redis-benchmark``` we can compare our clone directly with the real open source redis 6.2.  
 The following benchmark was ran on both ```redis-benchmark -t set,get -n 1000000```:
-
-
+- My Clone:  
+![Clone SET benchmark](img/cloneSET.png)
+![Clone GET benchmark](img/cloneGET.png)
+- Real redis:  
+![Redis SET benchmark](img/redisSET.png) ![Redis GET benchmark](img/redisGET.png)
 
 ## Future plans
 
