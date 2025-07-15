@@ -29,6 +29,8 @@ Server::Server() : pool(POOL_SIZE), kvstore(true, SAVEFILE_PATH, KEY_LIMIT) //Co
 
     try
     {
+        int opt = 1;
+        if (setsockopt(this->sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)  throw std::runtime_error("setsockopt(SO_REUSEADDR) failed");
         if (bind(this->sock, reinterpret_cast<sockaddr*>(&sockAddress), sizeof(sockAddress)) != 0) throw std::runtime_error("Server bind failed");
         if (listen(this->sock, 5) != 0) throw std::runtime_error("Server listen failed");
         std::cout << "Listening on: " << hostIP << " : " << servPort << std::endl;

@@ -18,9 +18,9 @@ include_directories(${BOOST_INCLUDEDIR})
 set(TBB_INCLUDEDIR "/usr/include")
 include_directories(${TBB_INCLUDEDIR})
 
-set(BOOST_SERIALIZATION_LIB "/usr/lib/x86_64-linux-gnu/libboost_serialization.so.1.83.0")
-set(BOOST_SYSTEM_LIB "/usr/lib/x86_64-linux-gnu/libboost_system.so.1.83.0")
-set(TBB_LIB "/usr/lib/x86_64-linux-gnu/libtbb.so.12")
+
+
+
 
 add_executable(redis_server
         src/main.cpp
@@ -33,30 +33,37 @@ add_executable(redis_server
         src/pubsub.cpp
 )
 
-target_link_libraries(redis_server PRIVATE ${BOOST_SERIALIZATION_LIB} ${BOOST_SYSTEM_LIB} ${TBB_LIB})
+
+target_link_libraries(redis_server PRIVATE boost_serialization boost_system tbb pthread)
+
 
 add_executable(redis_client
         src/client.cpp
         src/parser.cpp
 )
 
-add_executable(tests
-        test/test_basic.cpp
-        test/test_string.cpp
-        test/test_expiration.cpp
-        test/test_list.cpp
-        test/test_set.cpp
-        test/test_hash.cpp
-        test/test_misc.cpp
-        test/test_persistence.cpp
-        src/kvstore.cpp
-        src/parser.cpp
-        src/server.cpp
-        src/commands.cpp
-        src/snapshot.cpp
-        src/expire.cpp
-        src/pubsub.cpp
-)
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain ${BOOST_SERIALIZATION_LIB} ${TBB_LIB})
-include(Catch)
-catch_discover_tests(tests)
+option(BUILD_TESTS "Build tests" ON)
+if(BUILD_TESTS)
+    if(EXISTS "${CMAKE_SOURCE_DIR}/test/test_basic.cpp")
+        add_executable(tests
+                test/test_basic.cpp
+                test/test_string.cpp
+                test/test_expiration.cpp
+                test/test_list.cpp
+                test/test_set.cpp
+                test/test_hash.cpp
+                test/test_misc.cpp
+                test/test_persistence.cpp
+                src/kvstore.cpp
+                src/parser.cpp
+                src/server.cpp
+                src/commands.cpp
+                src/snapshot.cpp
+                src/expire.cpp
+                src/pubsub.cpp
+        )
+        target_link_libraries(tests PRIVATE Catch2::Catch2WithMain ${BOOST_SERIALIZATION_LIB} ${TBB_LIB})
+        include(Catch)
+        catch_discover_tests(tests)
+    endif()
+endif()
