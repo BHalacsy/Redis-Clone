@@ -62,7 +62,7 @@ if(BUILD_TESTS)
                 src/expire.cpp
                 src/pubsub.cpp
         )
-        target_link_libraries(tests PRIVATE Catch2::Catch2WithMain ${BOOST_SERIALIZATION_LIB} ${TBB_LIB})
+        target_link_libraries(tests PRIVATE Catch2::Catch2WithMain boost_serialization boost_system tbb pthread)
         include(Catch)
         catch_discover_tests(tests)
     endif()
