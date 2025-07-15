@@ -90,8 +90,7 @@ The client:
 ```./redis_client```
 
 ### Docker
-I made it possible to dockerize the project. Using the ```docker build -t redis-clone .``` command in the project directory and then running the image using  
-```docker run -v ./data:/app/data -p 6379:6379 redis-clone``` mounting volume for persistence.
+I made it possible to dockerize the project. Using the ```docker build -t redis-clone .``` command in the project directory and then running the image using ```docker run -v ./data:/app/data -p 6379:6379 redis-clone``` mounting volume for persistence.
 
 ### Usage
 For specifics on various implemented redis commands I recommend looking at the [redis docs](https://redis.io/docs/latest/commands) for what you may be looking for.
