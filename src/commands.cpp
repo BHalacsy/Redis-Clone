@@ -1,7 +1,7 @@
 #include <vector>
 #include <string>
 #include <format>
-#include <iostream>
+#include <unordered_map>
 
 #include "commands.hpp"
 #include "kvstore.hpp"
@@ -11,56 +11,61 @@
 
 Commands strToCmd(const std::string& cmd)
 {
-    if (cmd == "PING") return Commands::PING;
-    if (cmd == "ECHO") return Commands::ECHO;
-    if (cmd == "DEL") return Commands::DEL;
-    if (cmd == "EXISTS") return Commands::EXISTS;
-    if (cmd == "FLUSHALL") return Commands::FLUSHALL;
-    if (cmd == "SET") return Commands::SET;
-    if (cmd == "GET") return Commands::GET;
-    if (cmd == "INCR") return Commands::INCR;
-    if (cmd == "DCR") return Commands::DCR;
-    if (cmd == "INCRBY") return Commands::INCRBY;
-    if (cmd == "DCRBY") return Commands::DCRBY;
-    if (cmd == "APPEND") return Commands::APPEND;
-    if (cmd == "EXPIRE") return Commands::EXPIRE;
-    if (cmd == "TTL") return Commands::TTL;
-    if (cmd == "PERSIST") return Commands::PERSIST;
-    if (cmd == "MGET") return Commands::MGET;
-    if (cmd == "LPUSH") return Commands::LPUSH;
-    if (cmd == "RPUSH") return Commands::RPUSH;
-    if (cmd == "LPOP") return Commands::LPOP;
-    if (cmd == "RPOP") return Commands::RPOP;
-    if (cmd == "LRANGE") return Commands::LRANGE;
-    if (cmd == "LLEN") return Commands::LLEN;
-    if (cmd == "LINDEX") return Commands::LINDEX;
-    if (cmd == "LSET") return Commands::LSET;
-    if (cmd == "LREM") return Commands::LREM;
-    if (cmd == "SADD") return Commands::SADD;
-    if (cmd == "SREM") return Commands::SREM;
-    if (cmd == "SISMEMBER") return Commands::SISMEMBER;
-    if (cmd == "SMEMBERS") return Commands::SMEMBERS;
-    if (cmd == "SCARD") return Commands::SCARD;
-    if (cmd == "SPOP") return Commands::SPOP;
-    if (cmd == "HSET") return Commands::HSET;
-    if (cmd == "HGET") return Commands::HGET;
-    if (cmd == "HDEL") return Commands::HDEL;
-    if (cmd == "HEXISTS") return Commands::HEXISTS;
-    if (cmd == "HLEN") return Commands::HLEN;
-    if (cmd == "HKEYS") return Commands::HKEYS;
-    if (cmd == "HVALS") return Commands::HVALS;
-    if (cmd == "HMGET") return Commands::HMGET;
-    if (cmd == "HGETALL") return Commands::HGETALL;
-    if (cmd == "MULTI") return Commands::MULTI;
-    if (cmd == "EXEC") return Commands::EXEC;
-    if (cmd == "DISCARD") return Commands::DISCARD;
-    if (cmd == "PUBLISH") return Commands::PUBLISH;
-    if (cmd == "SUBSCRIBE") return Commands::SUBSCRIBE;
-    if (cmd == "UNSUBSCRIBE") return Commands::UNSUBSCRIBE;
-    if (cmd == "CONFIG") return Commands::CONFIG;
-    if (cmd == "TYPE") return Commands::TYPE;
-    if (cmd == "SAVE") return Commands::SAVE;
-    return Commands::UNKNOWN;
+    static const std::unordered_map<std::string, Commands> cmdMap =
+    {
+        {"PING", Commands::PING},
+        {"ECHO", Commands::ECHO},
+        {"DEL", Commands::DEL},
+        {"EXISTS", Commands::EXISTS},
+        {"FLUSHALL", Commands::FLUSHALL},
+        {"SET", Commands::SET},
+        {"GET", Commands::GET},
+        {"INCR", Commands::INCR},
+        {"DCR", Commands::DCR},
+        {"INCRBY", Commands::INCRBY},
+        {"DCRBY", Commands::DCRBY},
+        {"APPEND", Commands::APPEND},
+        {"EXPIRE", Commands::EXPIRE},
+        {"TTL", Commands::TTL},
+        {"PERSIST", Commands::PERSIST},
+        {"MGET", Commands::MGET},
+        {"LPUSH", Commands::LPUSH},
+        {"RPUSH", Commands::RPUSH},
+        {"LPOP", Commands::LPOP},
+        {"RPOP", Commands::RPOP},
+        {"LRANGE", Commands::LRANGE},
+        {"LLEN", Commands::LLEN},
+        {"LINDEX", Commands::LINDEX},
+        {"LSET", Commands::LSET},
+        {"LREM", Commands::LREM},
+        {"SADD", Commands::SADD},
+        {"SREM", Commands::SREM},
+        {"SISMEMBER", Commands::SISMEMBER},
+        {"SMEMBERS", Commands::SMEMBERS},
+        {"SCARD", Commands::SCARD},
+        {"SPOP", Commands::SPOP},
+        {"HSET", Commands::HSET},
+        {"HGET", Commands::HGET},
+        {"HDEL", Commands::HDEL},
+        {"HEXISTS", Commands::HEXISTS},
+        {"HLEN", Commands::HLEN},
+        {"HKEYS", Commands::HKEYS},
+        {"HVALS", Commands::HVALS},
+        {"HMGET", Commands::HMGET},
+        {"HGETALL", Commands::HGETALL},
+        {"MULTI", Commands::MULTI},
+        {"EXEC", Commands::EXEC},
+        {"DISCARD", Commands::DISCARD},
+        {"PUBLISH", Commands::PUBLISH},
+        {"SUBSCRIBE", Commands::SUBSCRIBE},
+        {"UNSUBSCRIBE", Commands::UNSUBSCRIBE},
+        {"CONFIG", Commands::CONFIG},
+        {"TYPE", Commands::TYPE},
+        {"SAVE", Commands::SAVE}
+    };
+
+    const auto found = cmdMap.find(cmd);
+    return found != cmdMap.end() ? found->second : Commands::UNKNOWN;
 }
 
 std::string handlePING(const std::vector<std::string>& args)
