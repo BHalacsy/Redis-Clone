@@ -28,7 +28,7 @@ The Redis clone replicates the core features and architecture of [Redis](https:/
 ## File structure
 ```
 ├── data
-│   └── dump.rdb //Holds the kvstore on shutdown or save
+│   └── dump.rdb        //Holds the kvstore on shutdown or save
 ├── include
 │   ├── LRU.hpp         //Eviction logic for max key limit
 │   ├── commands.hpp 
@@ -44,7 +44,7 @@ The Redis clone replicates the core features and architecture of [Redis](https:/
 │   └── util.hpp        //Helper file to store uncategorized functions
 ├── main
 ├── src
-│   ├── client.cpp      //Client logic that communicates with 
+│   ├── client.cpp      //Client logic that communicates with server
 │   ├── commands.cpp    //Command logic
 │   ├── expire.cpp      //Expiration logic
 │   ├── kvstore.cpp     //Main store!
@@ -115,8 +115,7 @@ The following benchmark was ran on both ```redis-benchmark -t set,get -n 1000000
 ### Integration
 
 I would like to down the line, implement the [Blocking operations](https://redis.io/docs/latest/develop/data-types/lists/#blocking-operations-on-lists) for task queueing with something like [Celery](https://docs.celeryq.dev/en/main/getting-started/introduction.html).  
-Also plan on making my own full-stack portfolio website with the main database being my redis-clone.  
-Probably will dockerize it.
+Also plan on making my own [full-stack portfolio website](https://github.com/BHalacsy/Portfolio-Fullstack) with the main database being my redis-clone.
 
 ### Pull requests
 Anybody who wants to fidget with it feel free. PRs and other feedback are welcome.
